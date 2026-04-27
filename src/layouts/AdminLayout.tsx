@@ -83,7 +83,7 @@ export function AdminLayout() {
     <div className="flex h-full flex-col bg-white">
       <div className="flex h-16 items-center justify-between border-b border-slate-200 px-5">
         <div>
-          <span className="block text-lg font-semibold text-primary">Medicall</span>
+          <span className="block text-lg font-semibold text-primary">MDaryger</span>
           <span className="text-xs font-medium text-slate-500">{t('app.brandSubtitle')}</span>
         </div>
         <Button className="lg:hidden" variant="ghost" size="icon" onClick={() => setIsSidebarOpen(false)} aria-label={t('common.closeNavigation')}>

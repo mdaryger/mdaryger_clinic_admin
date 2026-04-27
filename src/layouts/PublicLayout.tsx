@@ -15,7 +15,7 @@ export function PublicLayout() {
         <div className="relative mx-auto flex min-h-screen w-full max-w-7xl flex-col px-4 py-6 sm:px-6 lg:px-8">
           <div className="mb-6 flex items-start justify-between gap-4">
             <div className="max-w-xl">
-              <p className="text-sm font-semibold uppercase tracking-[0.28em] text-primary/80">Medicall Clinics</p>
+              <p className="text-sm font-semibold uppercase tracking-[0.28em] text-primary/80">MDaryger Clinics</p>
               <h1 className="mt-3 text-2xl font-semibold tracking-tight text-slate-950 sm:text-4xl">Админ-панель клиник</h1>
               <p className="mt-2 text-sm leading-6 text-slate-600 sm:text-base">
                 Удобный вход и регистрация для администраторов клиник в одном аккуратном интерфейсе.

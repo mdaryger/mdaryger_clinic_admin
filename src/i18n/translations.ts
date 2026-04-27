@@ -23,7 +23,7 @@ export const translations: Record<Language, TranslationTree> = {
     app: {
       brandSubtitle: 'Панель клиник',
       adminPanel: 'Панель администратора',
-      appTitle: 'Панель клиник Medicall',
+      appTitle: 'Панель клиник MDaryger',
     },
     nav: {
       clinics: 'Клиники',
@@ -68,7 +68,7 @@ export const translations: Record<Language, TranslationTree> = {
       hidePassword: 'Скрыть пароль',
     },
     landing: {
-      title: 'Панель управления клиниками Medicall',
+      title: 'Панель управления клиниками MDaryger',
       description: 'Управляйте филиалами, врачами, заявками, администраторами и планированием визитов в одном рабочем пространстве.',
       login: 'Войти',
       register: 'Регистрация',
@@ -115,7 +115,7 @@ export const translations: Record<Language, TranslationTree> = {
     },
     superAdmin: {
       clinicsTitle: 'Клиники',
-      clinicsDescription: 'Управление всеми клиниками Medicall.',
+      clinicsDescription: 'Управление всеми клиниками MDaryger.',
       createClinic: 'Создать клинику',
       editClinic: 'Редактировать клинику',
       searchClinics: 'Поиск по названию, городу, телефону или email',
@@ -150,7 +150,7 @@ export const translations: Record<Language, TranslationTree> = {
     app: {
       brandSubtitle: 'Клиникалар панели',
       adminPanel: 'Админ панели',
-      appTitle: 'Medicall клиникалар панели',
+      appTitle: 'MDaryger клиникалар панели',
     },
     nav: {
       clinics: 'Клиникалар',
@@ -195,7 +195,7 @@ export const translations: Record<Language, TranslationTree> = {
       hidePassword: 'Сырсөздү жашыруу',
     },
     landing: {
-      title: 'Medicall клиникаларын башкаруу панели',
+      title: 'MDaryger клиникаларын башкаруу панели',
       description: 'Филиалдарды, дарыгерлерди, өтүнмөлөрдү, администраторлорду жана визит пландарын бир жерде башкарыңыз.',
       login: 'Кирүү',
       register: 'Катталуу',
@@ -242,7 +242,7 @@ export const translations: Record<Language, TranslationTree> = {
     },
     superAdmin: {
       clinicsTitle: 'Клиникалар',
-      clinicsDescription: 'Medicall системасындагы бардык клиникаларды башкаруу.',
+      clinicsDescription: 'MDaryger системасындагы бардык клиникаларды башкаруу.',
       createClinic: 'Клиника түзүү',
       editClinic: 'Клиниканы өзгөртүү',
       searchClinics: 'Аты, шаары, телефону же email боюнча издөө',

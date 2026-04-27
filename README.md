@@ -1,4 +1,4 @@
-# Medicall Clinics Admin
+# MDaryger Clinics Admin
 
 Веб-панель для управления клиниками, филиалами, врачами, заявками и администраторами на базе Firebase.
 

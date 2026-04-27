@@ -1,12 +1,15 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Upload } from 'lucide-react';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 
 import { Button } from '../../components/ui/Button';
 import { Checkbox } from '../../components/ui/Checkbox';
 import { Input } from '../../components/ui/Input';
+import { Select } from '../../components/ui/Select';
 import { Textarea } from '../../components/ui/Textarea';
+import { useCities } from '../../hooks/useCities';
+import { useCountries } from '../../hooks/useCountries';
 import { clinicSchema, type ClinicSchemaValues } from '../../lib/validation/clinicSchema';
 import type { Clinic, ClinicFormData } from '../../types/clinic';
 
@@ -55,11 +58,53 @@ export function ClinicForm({ clinic, isSubmitting = false, onSubmit, onCancel }:
   const {
     register,
     handleSubmit,
+    watch,
+    setValue,
     formState: { errors },
   } = useForm<ClinicSchemaValues>({
     resolver: zodResolver(clinicSchema),
     defaultValues: getDefaultValues(clinic),
   });
+  const selectedCountryId = watch('countryId');
+  const selectedCityId = watch('cityId');
+  const { countries, loading: countriesLoading } = useCountries(true);
+  const { cities, loading: citiesLoading } = useCities(selectedCountryId);
+
+  useEffect(() => {
+    if (!selectedCountryId) {
+      setValue('cityId', '');
+      setValue('city', '');
+      return;
+    }
+
+    if (citiesLoading) {
+      return;
+    }
+
+    const currentCityExists = cities.some((city) => city.id === selectedCityId);
+
+    if (selectedCityId && !currentCityExists) {
+      setValue('cityId', '');
+      setValue('city', '');
+    }
+  }, [cities, citiesLoading, selectedCityId, selectedCountryId, setValue]);
+
+  const handleCountryChange = (countryId: string) => {
+    const country = countries.find((item) => item.id === countryId);
+
+    setValue('countryId', countryId, { shouldValidate: true });
+    setValue('country', country?.name ?? '', { shouldValidate: true });
+    setValue('cityId', '', { shouldValidate: true });
+    setValue('city', '', { shouldValidate: true });
+  };
+
+  const handleCityChange = (cityId: string) => {
+    const city = cities.find((item) => item.id === cityId);
+    const cityName = city?.name.ru || city?.name.en || '';
+
+    setValue('cityId', cityId, { shouldValidate: true });
+    setValue('city', cityName, { shouldValidate: true });
+  };
 
   const submitForm = (values: ClinicSchemaValues) => {
     const data: ClinicFormData = {
@@ -95,13 +140,44 @@ export function ClinicForm({ clinic, isSubmitting = false, onSubmit, onCancel }:
 
   return (
     <form className="space-y-6" onSubmit={handleSubmit(submitForm)}>
+      <input type="hidden" {...register('country')} />
+      <input type="hidden" {...register('countryId')} />
+      <input type="hidden" {...register('city')} />
+      <input type="hidden" {...register('cityId')} />
+
       <div className="grid gap-4 sm:grid-cols-2">
         <Input label="Name" error={errors.name?.message} {...register('name')} />
         <Input label="Phone" error={errors.phone?.message} {...register('phone')} />
-        <Input label="Country" error={errors.country?.message} {...register('country')} />
-        <Input label="Country ID" error={errors.countryId?.message} {...register('countryId')} />
-        <Input label="City" error={errors.city?.message} {...register('city')} />
-        <Input label="City ID" error={errors.cityId?.message} {...register('cityId')} />
+        <Select
+          label="Country"
+          error={errors.countryId?.message}
+          value={selectedCountryId}
+          onChange={(event) => handleCountryChange(event.target.value)}
+          disabled={countriesLoading}
+        >
+          <option value="">{countriesLoading ? 'Loading countries...' : 'Select country'}</option>
+          {countries.map((country) => (
+            <option key={country.id} value={country.id}>
+              {country.name}
+            </option>
+          ))}
+        </Select>
+        <Select
+          label="City"
+          error={errors.cityId?.message}
+          value={selectedCityId}
+          onChange={(event) => handleCityChange(event.target.value)}
+          disabled={!selectedCountryId || citiesLoading}
+        >
+          <option value="">
+            {!selectedCountryId ? 'Select country first' : citiesLoading ? 'Loading cities...' : 'Select city'}
+          </option>
+          {cities.map((city) => (
+            <option key={city.id} value={city.id}>
+              {city.name.ru || city.name.en || city.id}
+            </option>
+          ))}
+        </Select>
         <Input className="sm:col-span-2" label="Address" error={errors.address?.message} {...register('address')} />
         <Input label="Email" type="email" error={errors.email?.message} {...register('email')} />
         <Input label="Website" type="url" placeholder="https://example.com" error={errors.website?.message} {...register('website')} />
