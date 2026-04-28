@@ -1,11 +1,16 @@
 import { LogOut, Menu } from 'lucide-react';
+import { useState } from 'react';
 import { NavLink, Outlet } from 'react-router-dom';
 
+import { ConfirmDialog } from '../components/ui/ConfirmDialog';
 import { NAVIGATION_ITEMS } from '../constants/navigation';
+import { useI18n } from '../i18n/useI18n';
 import { useAuthStore } from '../store/authStore';
 import { cn } from '../utils/cn';
 
 export function AppLayout() {
+  const { t } = useI18n();
+  const [isLogoutConfirmOpen, setIsLogoutConfirmOpen] = useState(false);
   const { firebaseUser, profile, logout } = useAuthStore();
 
   return (
@@ -55,9 +60,9 @@ export function AppLayout() {
             </span>
             <button
               type="button"
-              onClick={() => void logout()}
+              onClick={() => setIsLogoutConfirmOpen(true)}
               className="inline-flex h-10 w-10 items-center justify-center rounded-md border border-slate-200 text-slate-600 transition hover:border-primary hover:text-primary"
-              aria-label="Sign out"
+              aria-label={t('common.logout')}
             >
               <LogOut className="h-4 w-4" aria-hidden="true" />
             </button>
@@ -68,6 +73,16 @@ export function AppLayout() {
           <Outlet />
         </main>
       </div>
+
+      <ConfirmDialog
+        isOpen={isLogoutConfirmOpen}
+        title={t('common.logoutTitle')}
+        description={t('common.logoutDescription')}
+        confirmLabel={t('common.logout')}
+        cancelLabel={t('common.cancel')}
+        onConfirm={() => void logout()}
+        onCancel={() => setIsLogoutConfirmOpen(false)}
+      />
     </div>
   );
 }

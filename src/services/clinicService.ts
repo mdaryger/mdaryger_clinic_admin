@@ -95,6 +95,7 @@ export async function createClinic(data: CreateClinicData, logoFile?: File, cove
     const clinicRef = doc(db, CLINICS_COLLECTION, nextId);
 
     transaction.set(clinicRef, {
+      id: nextId,
       ...data,
       logoUrl: data.logoUrl ?? '',
       coverImageUrl: data.coverImageUrl ?? '',
@@ -135,6 +136,7 @@ export async function updateClinic(
   const uploadData = Object.fromEntries(Object.entries(uploads).filter(([, value]) => Boolean(value)));
 
   await updateDoc(doc(db, CLINICS_COLLECTION, id), {
+    id,
     ...data,
     ...uploadData,
     updatedAt: serverTimestamp(),

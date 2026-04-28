@@ -8,21 +8,18 @@ import { Button } from '../components/ui/Button';
 import { Input } from '../components/ui/Input';
 import { useI18n } from '../i18n/useI18n';
 import { loginSchema, type LoginSchemaValues } from '../lib/validation/authSchema';
-import { sendPasswordReset } from '../services/authService';
 import { useAuthStore } from '../store/authStore';
 import { useToastStore } from '../store/toastStore';
 
 export function LoginPage() {
   const { t } = useI18n();
   const [isPasswordVisible, setIsPasswordVisible] = useState(false);
-  const [isResetLoading, setIsResetLoading] = useState(false);
   const login = useAuthStore((state) => state.login);
   const isLoading = useAuthStore((state) => state.isLoading);
   const showToast = useToastStore((state) => state.showToast);
   const {
     register,
     handleSubmit,
-    getValues,
     formState: { errors },
   } = useForm<LoginSchemaValues>({
     resolver: zodResolver(loginSchema),
@@ -39,27 +36,6 @@ export function LoginPage() {
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Unable to sign in.';
       showToast({ type: 'error', title: t('login.loginFailed'), description: message });
-    }
-  };
-
-  const onForgotPassword = async () => {
-    const email = getValues('email');
-
-    if (!email) {
-      showToast({ type: 'error', title: t('login.emailRequired'), description: t('login.emailRequiredDescription') });
-      return;
-    }
-
-    setIsResetLoading(true);
-
-    try {
-      await sendPasswordReset(email);
-      showToast({ type: 'success', title: t('login.resetSent'), description: t('login.resetSentDescription') });
-    } catch (error) {
-      const message = error instanceof Error ? error.message : 'Unable to send password reset.';
-      showToast({ type: 'error', title: t('login.resetFailed'), description: message });
-    } finally {
-      setIsResetLoading(false);
     }
   };
 
@@ -102,14 +78,6 @@ export function LoginPage() {
               {isPasswordVisible ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
             </button>
           </div>
-          <button
-            type="button"
-            onClick={() => void onForgotPassword()}
-            className="mt-2 text-sm font-medium text-primary hover:text-primary/80"
-            disabled={isResetLoading}
-          >
-            {t('login.forgotPassword')}
-          </button>
         </div>
 
         <Button type="submit" className="h-12 w-full rounded-2xl text-base shadow-[0_16px_35px_rgba(99,102,241,0.28)]" isLoading={isLoading}>

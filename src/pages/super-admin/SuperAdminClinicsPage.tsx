@@ -1,5 +1,5 @@
 import { Plus } from 'lucide-react';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Navigate } from 'react-router-dom';
 
 import { Button } from '../../components/ui/Button';
@@ -40,6 +40,7 @@ export function SuperAdminClinicsPage() {
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingClinic, setEditingClinic] = useState<Clinic | null>(null);
   const [deletingClinic, setDeletingClinic] = useState<Clinic | null>(null);
+  const formContainerRef = useRef<HTMLDivElement | null>(null);
 
   const loadClinics = useCallback(async () => {
     setIsLoading(true);
@@ -58,6 +59,17 @@ export function SuperAdminClinicsPage() {
   useEffect(() => {
     void loadClinics();
   }, [loadClinics]);
+
+  useEffect(() => {
+    if (!isFormOpen) {
+      return;
+    }
+
+    formContainerRef.current?.scrollIntoView({
+      behavior: 'smooth',
+      block: 'start',
+    });
+  }, [isFormOpen, editingClinic]);
 
   const filteredClinics = useMemo(() => {
     const query = search.trim().toLowerCase();
@@ -142,14 +154,16 @@ export function SuperAdminClinicsPage() {
       />
 
       {isFormOpen ? (
-        <Card className="mb-6">
+        <div ref={formContainerRef}>
+          <Card className="mb-6">
           <CardHeader>
             <h2 className="text-lg font-semibold text-slate-950">{editingClinic ? t('superAdmin.editClinicTitle') : t('superAdmin.createClinicTitle')}</h2>
           </CardHeader>
           <CardContent>
             <ClinicForm clinic={editingClinic} isSubmitting={isSubmitting} onSubmit={handleSubmit} onCancel={closeForm} />
           </CardContent>
-        </Card>
+          </Card>
+        </div>
       ) : null}
 
       <Card>

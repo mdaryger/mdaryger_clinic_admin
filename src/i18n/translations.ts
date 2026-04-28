@@ -9,6 +9,8 @@ export const translations: Record<Language, TranslationTree> = {
     common: {
       admin: 'Администратор',
       logout: 'Выйти',
+      logoutTitle: 'Подтвердите выход',
+      logoutDescription: 'Вы действительно хотите выйти из аккаунта?',
       loading: 'Загрузка...',
       retry: 'Повторить',
       cancel: 'Отмена',
@@ -136,6 +138,8 @@ export const translations: Record<Language, TranslationTree> = {
     common: {
       admin: 'Администратор',
       logout: 'Чыгуу',
+      logoutTitle: 'Чыгууну ырастаңыз',
+      logoutDescription: 'Аккаунттан чыгууну каалайсызбы?',
       loading: 'Жүктөлүүдө...',
       retry: 'Кайра аракет кылуу',
       cancel: 'Жокко чыгаруу',

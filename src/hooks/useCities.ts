@@ -10,7 +10,7 @@ type UseCitiesResult = {
 
 export function useCities(countryId?: string | null): UseCitiesResult {
   const [cities, setCities] = useState<City[]>([]);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(Boolean(countryId));
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {

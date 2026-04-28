@@ -59,6 +59,7 @@ export function ClinicForm({ clinic, isSubmitting = false, onSubmit, onCancel }:
     register,
     handleSubmit,
     watch,
+    reset,
     setValue,
     formState: { errors },
   } = useForm<ClinicSchemaValues>({
@@ -69,6 +70,12 @@ export function ClinicForm({ clinic, isSubmitting = false, onSubmit, onCancel }:
   const selectedCityId = watch('cityId');
   const { countries, loading: countriesLoading } = useCountries(true);
   const { cities, loading: citiesLoading } = useCities(selectedCountryId);
+
+  useEffect(() => {
+    reset(getDefaultValues(clinic));
+    setLogoFile(undefined);
+    setCoverFile(undefined);
+  }, [clinic, reset]);
 
   useEffect(() => {
     if (!selectedCountryId) {
@@ -201,14 +208,26 @@ export function ClinicForm({ clinic, isSubmitting = false, onSubmit, onCancel }:
             <Upload className="h-4 w-4 text-primary" aria-hidden="true" />
             Logo upload
           </span>
+          {clinic?.logoUrl ? (
+            <div className="mt-3">
+              <img src={clinic.logoUrl} alt={`${clinic.name} logo`} className="h-24 w-24 rounded-lg border border-slate-200 object-cover" />
+            </div>
+          ) : null}
           <input className="mt-3 text-sm" type="file" accept="image/png,image/jpeg,image/webp" onChange={(event) => setLogoFile(event.target.files?.[0])} />
+          {logoFile ? <p className="mt-2 text-sm text-slate-500">Selected: {logoFile.name}</p> : null}
         </label>
         <label className="block rounded-lg border border-dashed border-slate-300 bg-slate-50 p-4">
           <span className="flex items-center gap-2 text-sm font-medium text-slate-700">
             <Upload className="h-4 w-4 text-primary" aria-hidden="true" />
             Cover upload
           </span>
+          {clinic?.coverImageUrl ? (
+            <div className="mt-3">
+              <img src={clinic.coverImageUrl} alt={`${clinic.name} cover`} className="h-24 w-full rounded-lg border border-slate-200 object-cover" />
+            </div>
+          ) : null}
           <input className="mt-3 text-sm" type="file" accept="image/png,image/jpeg,image/webp" onChange={(event) => setCoverFile(event.target.files?.[0])} />
+          {coverFile ? <p className="mt-2 text-sm text-slate-500">Selected: {coverFile.name}</p> : null}
         </label>
       </div>
 

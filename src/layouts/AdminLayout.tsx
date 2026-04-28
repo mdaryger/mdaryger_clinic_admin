@@ -16,6 +16,7 @@ import { NavLink, Outlet, useLocation } from 'react-router-dom';
 
 import { Badge } from '../components/ui/Badge';
 import { Button } from '../components/ui/Button';
+import { ConfirmDialog } from '../components/ui/ConfirmDialog';
 import { useI18n } from '../i18n/useI18n';
 import { useAuthStore } from '../store/authStore';
 import { cn } from '../utils/cn';
@@ -60,6 +61,7 @@ function formatRole(role: string | null, t: (key: string) => string) {
 export function AdminLayout() {
   const { t, language, setLanguage } = useI18n();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [isLogoutConfirmOpen, setIsLogoutConfirmOpen] = useState(false);
   const { pathname } = useLocation();
   const { firebaseUser, profile, role, isSuperAdmin, isBranchAdmin, logout } = useAuthStore();
   const currentUserName =
@@ -172,7 +174,7 @@ export function AdminLayout() {
               <p className="truncate text-sm font-semibold text-slate-950">{currentUserName}</p>
               <p className="text-xs text-slate-500">{formatRole(role, t)}</p>
             </div>
-            <Button variant="secondary" size="icon" onClick={() => void logout()} aria-label={t('common.logout')}>
+            <Button variant="secondary" size="icon" onClick={() => setIsLogoutConfirmOpen(true)} aria-label={t('common.logout')}>
               <LogOut className="h-4 w-4" aria-hidden="true" />
             </Button>
           </div>
@@ -182,6 +184,16 @@ export function AdminLayout() {
           <Outlet />
         </main>
       </div>
+
+      <ConfirmDialog
+        isOpen={isLogoutConfirmOpen}
+        title={t('common.logoutTitle')}
+        description={t('common.logoutDescription')}
+        confirmLabel={t('common.logout')}
+        cancelLabel={t('common.cancel')}
+        onConfirm={() => void logout()}
+        onCancel={() => setIsLogoutConfirmOpen(false)}
+      />
     </div>
   );
 }
