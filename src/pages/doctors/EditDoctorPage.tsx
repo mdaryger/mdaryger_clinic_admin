@@ -8,6 +8,7 @@ import { ErrorState } from '../../components/ui/ErrorState';
 import { LoadingState } from '../../components/ui/LoadingState';
 import { PageHeader } from '../../components/ui/PageHeader';
 import { DoctorForm } from '../../features/doctors/DoctorForm';
+import { useI18n } from '../../i18n/useI18n';
 import { getDoctorById, updateDoctor, type Doctor, type DoctorFiles, type DoctorFormData } from '../../services/doctorService';
 import { useAuthStore } from '../../store/authStore';
 import { useToastStore } from '../../store/toastStore';
@@ -23,6 +24,7 @@ function getDoctorBasePath(mode: DoctorMode): string {
 }
 
 export function EditDoctorPage() {
+  const { t } = useI18n();
   const { pathname } = useLocation();
   const { doctorId } = useParams();
   const navigate = useNavigate();
@@ -37,7 +39,7 @@ export function EditDoctorPage() {
 
   const loadDoctor = useCallback(async () => {
     if (!doctorId) {
-      setError('Doctor id is missing.');
+      setError(t('doctors.missingId'));
       setIsLoading(false);
       return;
     }
@@ -51,24 +53,24 @@ export function EditDoctorPage() {
       if (doctorData) {
         if (clinicId && doctorData.clinicId !== clinicId) {
           setDoctor(null);
-          setError('This doctor is not available for the current clinic.');
+          setError(t('doctors.unavailableCurrentClinic'));
           return;
         }
 
         if (mode === 'branch' && clinicBranchId && doctorData.clinicBranchId !== clinicBranchId) {
           setDoctor(null);
-          setError('This doctor is not available for the current branch.');
+          setError(t('doctors.unavailableCurrentBranch'));
           return;
         }
       }
 
       setDoctor(doctorData);
     } catch (unknownError) {
-      setError(unknownError instanceof Error ? unknownError.message : 'Unable to load doctor.');
+      setError(unknownError instanceof Error ? unknownError.message : t('doctors.loadFailed'));
     } finally {
       setIsLoading(false);
     }
-  }, [clinicBranchId, clinicId, doctorId, mode]);
+  }, [clinicBranchId, clinicId, doctorId, mode, t]);
 
   useEffect(() => {
     void loadDoctor();
@@ -79,15 +81,15 @@ export function EditDoctorPage() {
   }
 
   if (isLoading) {
-    return <LoadingState label="Loading doctor..." />;
+    return <LoadingState label={t('doctors.loadingOne')} />;
   }
 
   if (error) {
-    return <ErrorState title="Unable to load doctor" description={error} actionLabel="Retry" onAction={() => void loadDoctor()} />;
+    return <ErrorState title={t('doctors.loadFailed')} description={error} actionLabel={t('common.retry')} onAction={() => void loadDoctor()} />;
   }
 
   if (!doctor || !clinicId) {
-    return <ErrorState title="Doctor not found" description="The requested doctor does not exist." />;
+    return <ErrorState title={t('doctors.notFoundTitle')} description={t('doctors.notFoundDescription')} />;
   }
 
   const doctorName = [doctor.name, doctor.lastName].filter(Boolean).join(' ');
@@ -110,11 +112,11 @@ export function EditDoctorPage() {
         },
         payload.files,
       );
-      showToast({ type: 'success', title: 'Doctor updated' });
+      showToast({ type: 'success', title: t('doctors.updateSuccess') });
       navigate(`${basePath}/${doctorId}`);
     } catch (unknownError) {
-      const message = unknownError instanceof Error ? unknownError.message : 'Unable to update doctor.';
-      showToast({ type: 'error', title: 'Update failed', description: message });
+      const message = unknownError instanceof Error ? unknownError.message : t('doctors.updateFailed');
+      showToast({ type: 'error', title: t('doctors.updateFailed'), description: message });
     } finally {
       setIsSubmitting(false);
     }
@@ -123,13 +125,13 @@ export function EditDoctorPage() {
   return (
     <div className="space-y-6">
       <PageHeader
-        title={`Edit ${doctorName}`}
-        description="Update doctor profile data and replace supporting documents if needed."
+        title={`${t('doctors.editTitle')}: ${doctorName}`}
+        description={t('doctors.editDescription')}
         actions={
           <Link to={`${basePath}/${doctor.id}`}>
             <Button type="button" variant="secondary">
               <ArrowLeft className="h-4 w-4" aria-hidden="true" />
-              Back
+              {t('doctors.back')}
             </Button>
           </Link>
         }
@@ -137,7 +139,7 @@ export function EditDoctorPage() {
 
       <Card>
         <CardHeader>
-          <h2 className="text-lg font-semibold text-slate-950">Doctor profile</h2>
+          <h2 className="text-lg font-semibold text-slate-950">{t('doctors.profileTitle')}</h2>
         </CardHeader>
         <CardContent>
           <DoctorForm

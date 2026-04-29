@@ -1,6 +1,7 @@
 import { Card, CardContent, CardHeader } from '../../components/ui/Card';
 import { StatusChip } from '../../components/ui/StatusChip';
 import { UrgencyChip } from '../../components/ui/UrgencyChip';
+import { useI18n } from '../../i18n/useI18n';
 import type { RequestRecord } from '../../services/requestService';
 
 function formatDate(value: unknown): string {
@@ -59,90 +60,92 @@ type RequestDetailsSectionsProps = {
 };
 
 export function RequestDetailsSections({ request }: RequestDetailsSectionsProps) {
+  const { t } = useI18n();
+
   return (
     <div className="space-y-6">
       <Card>
         <CardHeader>
           <div className="flex flex-wrap items-center gap-3">
-            <h2 className="text-lg font-semibold text-slate-950">Request {request.id}</h2>
+            <h2 className="text-lg font-semibold text-slate-950">{t('requests.requestWithId', { id: request.id })}</h2>
             <StatusChip status={request.status} />
             <UrgencyChip urgency={request.urgency} />
           </div>
         </CardHeader>
         <CardContent className="grid gap-4 sm:grid-cols-2">
-          <DetailItem label="Created at" value={formatDate(request.createdAt)} />
-          <DetailItem label="Updated at" value={formatDate(request.updatedAt)} />
+          <DetailItem label={t('requests.createdAt')} value={formatDate(request.createdAt)} />
+          <DetailItem label={t('requests.updatedAt')} value={formatDate(request.updatedAt)} />
         </CardContent>
       </Card>
 
       <Card>
-        <CardHeader><h3 className="text-base font-semibold text-slate-950">Patient</h3></CardHeader>
+        <CardHeader><h3 className="text-base font-semibold text-slate-950">{t('requests.patientSection')}</h3></CardHeader>
         <CardContent className="grid gap-4 sm:grid-cols-2">
-          <DetailItem label="Patient name" value={request.patientName} />
-          <DetailItem label="Patient phone" value={request.patientPhone} />
-          <DetailItem label="Patient address" value={request.patientAddress} />
-          <DetailItem label="Patient gender" value={request.patientGender} />
-          <div className="sm:col-span-2"><DetailItem label="Patient notes" value={request.patientNotes} /></div>
+          <DetailItem label={t('requests.patientName')} value={request.patientName} />
+          <DetailItem label={t('requests.patientPhone')} value={request.patientPhone} />
+          <DetailItem label={t('requests.patientAddress')} value={request.patientAddress} />
+          <DetailItem label={t('requests.patientGender')} value={request.patientGender} />
+          <div className="sm:col-span-2"><DetailItem label={t('requests.patientNotes')} value={request.patientNotes} /></div>
         </CardContent>
       </Card>
 
       <Card>
-        <CardHeader><h3 className="text-base font-semibold text-slate-950">Visit</h3></CardHeader>
+        <CardHeader><h3 className="text-base font-semibold text-slate-950">{t('requests.visitSection')}</h3></CardHeader>
         <CardContent className="grid gap-4 sm:grid-cols-2">
-          <DetailItem label="Visit reason" value={request.visitReason} />
-          <DetailItem label="Symptoms" value={request.symptoms} />
-          <DetailItem label="Doctor type" value={request.doctorType} />
-          <DetailItem label="Department ID" value={request.departmentId} />
-          <DetailItem label="Latitude / Longitude" value={[request.latitude, request.longitude].filter((item) => item !== null && item !== undefined).join(', ')} />
-          <DetailItem label="Time doctor to patients" value={request.timeDoctorToPatients} />
+          <DetailItem label={t('requests.visitReason')} value={request.visitReason} />
+          <DetailItem label={t('requests.symptoms')} value={request.symptoms} />
+          <DetailItem label={t('requests.doctorType')} value={request.doctorType} />
+          <DetailItem label={t('requests.departmentId')} value={request.departmentId} />
+          <DetailItem label={t('requests.location')} value={[request.latitude, request.longitude].filter((item) => item !== null && item !== undefined).join(', ')} />
+          <DetailItem label={t('requests.timeDoctorToPatients')} value={request.timeDoctorToPatients} />
         </CardContent>
       </Card>
 
       <Card>
-        <CardHeader><h3 className="text-base font-semibold text-slate-950">Doctor</h3></CardHeader>
+        <CardHeader><h3 className="text-base font-semibold text-slate-950">{t('requests.doctorSection')}</h3></CardHeader>
         <CardContent className="grid gap-4 sm:grid-cols-2">
-          <DetailItem label="Doctor ID" value={request.doctorId} />
-          <DetailItem label="Selected doctor ID" value={request.selectedDoctorId} />
-          <DetailItem label="Visited doctor ID" value={request.visitedDoctorId} />
-          <DetailItem label="Doctor name" value={request.doctorName} />
-          <DetailItem label="Doctor phone" value={request.doctorPhone} />
-          <DetailItem label="Doctor specialist" value={request.doctorSpecialist} />
-          <DetailItem label="Doctor avatar" value={request.doctorAvatar} />
-          <DetailItem label="Doctor notes" value={request.doctorNotes} />
-          <div className="sm:col-span-2"><DetailItem label="Doctor note about visit" value={request.doctorNoteAboutVisit} /></div>
+          <DetailItem label={t('requests.doctorId')} value={request.doctorId} />
+          <DetailItem label={t('requests.selectedDoctorId')} value={request.selectedDoctorId} />
+          <DetailItem label={t('requests.visitedDoctorId')} value={request.visitedDoctorId} />
+          <DetailItem label={t('requests.doctorName')} value={request.doctorName} />
+          <DetailItem label={t('requests.doctorPhone')} value={request.doctorPhone} />
+          <DetailItem label={t('requests.doctorSpecialist')} value={request.doctorSpecialist} />
+          <DetailItem label={t('requests.doctorAvatar')} value={request.doctorAvatar} />
+          <DetailItem label={t('requests.doctorNotes')} value={request.doctorNotes} />
+          <div className="sm:col-span-2"><DetailItem label={t('requests.doctorNoteAboutVisit')} value={request.doctorNoteAboutVisit} /></div>
         </CardContent>
       </Card>
 
       <Card>
-        <CardHeader><h3 className="text-base font-semibold text-slate-950">Financial</h3></CardHeader>
+        <CardHeader><h3 className="text-base font-semibold text-slate-950">{t('requests.financialSection')}</h3></CardHeader>
         <CardContent className="grid gap-4 sm:grid-cols-2">
-          <DetailItem label="Cost" value={request.cost} />
-          <DetailItem label="Estimated price" value={request.estimatedPrice} />
-          <DetailItem label="Final price" value={request.finalPrice} />
-          <DetailItem label="Payment status" value={request.paymentStatus} />
+          <DetailItem label={t('requests.cost')} value={request.cost} />
+          <DetailItem label={t('requests.estimatedPrice')} value={request.estimatedPrice} />
+          <DetailItem label={t('requests.finalPrice')} value={request.finalPrice} />
+          <DetailItem label={t('requests.paymentStatus')} value={request.paymentStatus} />
         </CardContent>
       </Card>
 
       <Card>
-        <CardHeader><h3 className="text-base font-semibold text-slate-950">Cancellation / Review</h3></CardHeader>
+        <CardHeader><h3 className="text-base font-semibold text-slate-950">{t('requests.cancellationReviewSection')}</h3></CardHeader>
         <CardContent className="grid gap-4 sm:grid-cols-2">
-          <DetailItem label="Cancellation reason" value={request.cancellationReason} />
-          <DetailItem label="Cancelled by" value={request.cancelledBy} />
-          <DetailItem label="Patient rating" value={request.patientRating} />
-          <DetailItem label="Reviewed at" value={formatDate(request.reviewedAt)} />
-          <div className="sm:col-span-2"><DetailItem label="Patient review" value={request.patientReview} /></div>
+          <DetailItem label={t('requests.cancellationReason')} value={request.cancellationReason} />
+          <DetailItem label={t('requests.cancelledBy')} value={request.cancelledBy} />
+          <DetailItem label={t('requests.patientRating')} value={request.patientRating} />
+          <DetailItem label={t('requests.reviewedAt')} value={formatDate(request.reviewedAt)} />
+          <div className="sm:col-span-2"><DetailItem label={t('requests.patientReview')} value={request.patientReview} /></div>
         </CardContent>
       </Card>
 
       <Card>
-        <CardHeader><h3 className="text-base font-semibold text-slate-950">Timeline</h3></CardHeader>
+        <CardHeader><h3 className="text-base font-semibold text-slate-950">{t('requests.timelineSection')}</h3></CardHeader>
         <CardContent className="grid gap-4 sm:grid-cols-2">
-          <DetailItem label="Created at" value={formatDate(request.createdAt)} />
-          <DetailItem label="Accepted at" value={formatDate(request.acceptedAt)} />
-          <DetailItem label="Started at" value={formatDate(request.startedAt)} />
-          <DetailItem label="Completed at" value={formatDate(request.completedAt)} />
-          <DetailItem label="Cancelled at" value={formatDate(request.cancelledAt)} />
-          <DetailItem label="Updated at" value={formatDate(request.updatedAt)} />
+          <DetailItem label={t('requests.createdAt')} value={formatDate(request.createdAt)} />
+          <DetailItem label={t('requests.acceptedAt')} value={formatDate(request.acceptedAt)} />
+          <DetailItem label={t('requests.startedAt')} value={formatDate(request.startedAt)} />
+          <DetailItem label={t('requests.completedAt')} value={formatDate(request.completedAt)} />
+          <DetailItem label={t('requests.cancelledAt')} value={formatDate(request.cancelledAt)} />
+          <DetailItem label={t('requests.updatedAt')} value={formatDate(request.updatedAt)} />
         </CardContent>
       </Card>
     </div>

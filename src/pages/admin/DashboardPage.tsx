@@ -1,8 +1,6 @@
 import {
   Activity,
   Building2,
-  Clock3,
-  MapPin,
   ShieldCheck,
   Stethoscope,
   UserRound,
@@ -11,7 +9,6 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Navigate } from 'react-router-dom';
 
 import { Badge } from '../../components/ui/Badge';
-import { Card, CardContent, CardHeader } from '../../components/ui/Card';
 import { ErrorState } from '../../components/ui/ErrorState';
 import { LoadingState } from '../../components/ui/LoadingState';
 import { PageHeader } from '../../components/ui/PageHeader';
@@ -23,8 +20,6 @@ import {
   getClinicDashboardData,
   type BranchDashboardData,
   type ClinicDashboardData,
-  type DashboardBranch,
-  type DashboardDoctor,
   type DashboardRequest,
 } from '../../services/dashboardService';
 import { useAuthStore } from '../../store/authStore';
@@ -65,34 +60,6 @@ function getGreetingName(profile: Record<string, unknown> | null): string {
   }
 
   return '';
-}
-
-function getDoctorName(doctor: DashboardDoctor): string {
-  if (typeof doctor.name === 'string' && doctor.name.trim()) {
-    const fullNameFromNameField = `${doctor.name} ${doctor.lastName ?? ''}`.trim();
-
-    return fullNameFromNameField;
-  }
-
-  const fullName = `${doctor.firstName ?? ''} ${doctor.lastName ?? ''}`.trim();
-
-  if (fullName) {
-    return fullName;
-  }
-
-  if (typeof doctor.displayName === 'string' && doctor.displayName.trim()) {
-    return doctor.displayName;
-  }
-
-  return doctor.id;
-}
-
-function getBranchName(branch: DashboardBranch): string {
-  if (typeof branch.name === 'string' && branch.name.trim()) {
-    return branch.name;
-  }
-
-  return branch.id;
 }
 
 function getRequestTitle(request: DashboardRequest): string {
@@ -288,34 +255,6 @@ export function DashboardPage() {
     }));
   }, [dashboard, t]);
 
-  const latestDoctors = useMemo(() => {
-    if (!dashboard) {
-      return [];
-    }
-
-    return dashboard.data.latestDoctors.map((doctor) => ({
-      id: doctor.id,
-      title: getDoctorName(doctor),
-      subtitle: typeof doctor.specialty === 'string' && doctor.specialty.trim() ? doctor.specialty : doctor.id,
-      meta: doctor.status ?? (doctor.isActive ? 'active' : 'inactive'),
-      tone: (doctor.isActive ? 'green' : 'slate') as ActivityTone,
-    }));
-  }, [dashboard]);
-
-  const latestBranches = useMemo(() => {
-    if (!dashboard || dashboard.kind !== 'clinic') {
-      return [];
-    }
-
-    return dashboard.data.latestBranches.map((branch) => ({
-      id: branch.id,
-      title: getBranchName(branch),
-      subtitle: [branch.city, branch.address].filter(Boolean).join(' • ') || branch.id,
-      meta: branch.isActive ? 'active' : 'inactive',
-      tone: (branch.isActive ? 'green' : 'slate') as ActivityTone,
-    }));
-  }, [dashboard]);
-
   if (isSuperAdmin) {
     return <Navigate to="/super-admin" replace />;
   }
@@ -359,45 +298,7 @@ export function DashboardPage() {
         ))}
       </div>
 
-      <section className="grid gap-4 xl:grid-cols-3">
-        <Card>
-          <CardHeader>
-              <h2 className="text-base font-semibold text-slate-950">Workspace</h2>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            <div className="flex items-start gap-3">
-              <Building2 className="mt-0.5 h-4 w-4 text-slate-400" />
-              <div>
-                <p className="text-sm font-medium text-slate-950">{clinicRecord?.name ?? t('dashboard.clinicUnavailable')}</p>
-                <p className="text-sm text-slate-600">{clinicRecord?.description || t('dashboard.clinicUnavailable')}</p>
-              </div>
-            </div>
-            <div className="flex items-start gap-3">
-              <MapPin className="mt-0.5 h-4 w-4 text-slate-400" />
-              <div>
-                <p className="text-sm font-medium text-slate-950">
-                  {[clinicRecord?.city, clinicRecord?.country].filter(Boolean).join(', ') || t('dashboard.branchDetails')}
-                </p>
-                <p className="text-sm text-slate-600">{clinicRecord?.address || 'Address not specified'}</p>
-              </div>
-            </div>
-            <div className="flex items-start gap-3">
-              <Clock3 className="mt-0.5 h-4 w-4 text-slate-400" />
-              <div>
-                <p className="text-sm font-medium text-slate-950">Working hours</p>
-                <p className="text-sm text-slate-600">{clinicRecord?.workingHours || 'Working hours not specified'}</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <ActivityList title="Latest requests" emptyLabel="No requests yet." items={latestRequests} />
-        <ActivityList title="Latest doctors" emptyLabel="No doctors yet." items={latestDoctors} />
-      </section>
-
-      {dashboard?.kind === 'clinic' ? (
-        <ActivityList title="Latest branches" emptyLabel="No branches yet." items={latestBranches} />
-      ) : null}
+      <ActivityList title="Последние заявки" emptyLabel="Пока нет заявок." items={latestRequests} />
     </div>
   );
 }

@@ -11,6 +11,7 @@ import { LoadingState } from '../../components/ui/LoadingState';
 import { PageHeader } from '../../components/ui/PageHeader';
 import { SearchInput } from '../../components/ui/SearchInput';
 import { Select } from '../../components/ui/Select';
+import { useI18n } from '../../i18n/useI18n';
 import { getBranchesByClinicId, type ClinicBranch } from '../../services/branchService';
 import {
   getDoctorsByBranchId,
@@ -21,7 +22,7 @@ import {
 import { useAuthStore } from '../../store/authStore';
 import { useToastStore } from '../../store/toastStore';
 import { exportToCsv } from '../../utils/csvExport';
-import { formatDate, formatFullName } from '../../utils/formatters';
+import { formatDate, formatFullName, formatPhone } from '../../utils/formatters';
 import { matchesSearchQuery } from '../../utils/search';
 
 type DoctorMode = 'clinic' | 'branch';
@@ -35,6 +36,7 @@ function getDoctorBasePath(mode: DoctorMode): string {
 }
 
 export function DoctorsListPage() {
+  const { t } = useI18n();
   const { pathname } = useLocation();
   const mode = getDoctorMode(pathname);
   const basePath = getDoctorBasePath(mode);
@@ -71,18 +73,18 @@ export function DoctorsListPage() {
         setBranches(branchesData);
       } else {
         if (!clinicBranchId) {
-          throw new Error('Branch is not available for this user.');
+          throw new Error(t('dashboard.branchUnavailable'));
         }
 
         setDoctors(await getDoctorsByBranchId(clinicBranchId));
         setBranches([]);
       }
     } catch (unknownError) {
-      setError(unknownError instanceof Error ? unknownError.message : 'Unable to load doctors.');
+      setError(unknownError instanceof Error ? unknownError.message : t('doctors.loadListFailed'));
     } finally {
       setIsLoading(false);
     }
-  }, [clinicBranchId, clinicId, mode]);
+  }, [clinicBranchId, clinicId, mode, t]);
 
   useEffect(() => {
     void loadDoctors();
@@ -93,15 +95,15 @@ export function DoctorsListPage() {
 
     try {
       await updateDoctorStatus(doctor.id, !doctor.isActive);
-      showToast({ type: 'success', title: !doctor.isActive ? 'Doctor activated' : 'Doctor deactivated' });
+      showToast({ type: 'success', title: !doctor.isActive ? t('doctors.activateDoctor') : t('doctors.deactivateDoctor') });
       await loadDoctors();
     } catch (unknownError) {
-      const message = unknownError instanceof Error ? unknownError.message : 'Unable to update doctor status.';
-      showToast({ type: 'error', title: 'Update failed', description: message });
+      const message = unknownError instanceof Error ? unknownError.message : t('doctors.updateFailed');
+      showToast({ type: 'error', title: t('doctors.updateFailed'), description: message });
     } finally {
       setIsSubmitting(false);
     }
-  }, [loadDoctors, showToast]);
+  }, [loadDoctors, showToast, t]);
 
   const filteredDoctors = useMemo(() => {
     return doctors.filter((doctor) => {
@@ -126,79 +128,88 @@ export function DoctorsListPage() {
 
   const columns = useMemo<DataTableColumn<Doctor>[]>(() => [
     {
-      key: 'fullName',
-      header: 'Full name',
+      key: 'doctor',
+      header: t('doctors.doctor'),
+      className: 'min-w-[240px]',
       cell: (doctor) => (
-        <div>
+        <div className="space-y-1">
           <p className="font-semibold text-slate-950">{formatFullName(doctor)}</p>
-          <p className="text-xs text-slate-500">{doctor.id}</p>
+          <p className="text-sm text-slate-600">{doctor.specialist || '-'}</p>
         </div>
       ),
     },
     {
-      key: 'email',
-      header: 'Email',
-      cell: (doctor) => doctor.email || '-',
-    },
-    {
-      key: 'phone',
-      header: 'Phone',
-      cell: (doctor) => doctor.phone || '-',
-    },
-    {
-      key: 'specialist',
-      header: 'Specialist',
-      cell: (doctor) => doctor.specialist || '-',
+      key: 'contacts',
+      header: t('doctors.contacts'),
+      className: 'min-w-[220px]',
+      cell: (doctor) => (
+        <div className="space-y-1">
+          <p className="text-sm text-slate-900">{doctor.email || '-'}</p>
+          <p className="whitespace-nowrap text-sm text-slate-600">{formatPhone(doctor.phone)}</p>
+        </div>
+      ),
     },
     {
       key: 'clinicBranch',
-      header: mode === 'clinic' ? 'Clinic / branch' : 'Branch',
-      cell: (doctor) =>
-        mode === 'clinic'
-          ? `${doctor.clinicName || '-'} / ${branchMap.get(doctor.clinicBranchId) ?? doctor.clinicBranchId ?? '-'}`
-          : branchMap.get(doctor.clinicBranchId) ?? doctor.clinicBranchId ?? '-',
+      header: mode === 'clinic' ? t('doctors.clinicBranch') : t('doctors.branch'),
+      className: 'min-w-[190px]',
+      cell: (doctor) => {
+        const branchLabel = branchMap.get(doctor.clinicBranchId) ?? doctor.clinicBranchId ?? '';
+
+        return mode === 'clinic' ? (
+          <div className="space-y-1">
+            <p className="font-medium text-slate-900">{doctor.clinicName || t('doctors.notSpecified')}</p>
+            <p className="text-sm text-slate-600">{branchLabel || t('doctors.notSpecified')}</p>
+          </div>
+        ) : (
+          <span>{branchLabel || t('doctors.notSpecified')}</span>
+        );
+      },
     },
     {
-      key: 'price',
-      header: 'Price',
-      cell: (doctor) => doctor.price,
-    },
-    {
-      key: 'experience',
-      header: 'Experience',
-      cell: (doctor) => `${doctor.experience} y`,
+      key: 'workInfo',
+      header: t('doctors.priceExperience'),
+      className: 'min-w-[150px]',
+      cell: (doctor) => (
+        <div className="space-y-1">
+          <p className="font-medium text-slate-900">{doctor.price}</p>
+          <p className="text-sm text-slate-600">{doctor.experience} {t('doctors.yearsSuffix')}</p>
+        </div>
+      ),
     },
     {
       key: 'status',
-      header: 'Status',
+      header: t('doctors.status'),
+      className: 'min-w-[220px]',
       cell: (doctor) => (
-        <div className="flex flex-wrap gap-2">
-          <Badge tone={doctor.isActive ? 'green' : 'slate'}>{doctor.isActive ? 'Active' : 'Inactive'}</Badge>
-          <Badge tone={doctor.isVerified ? 'primary' : 'slate'}>{doctor.isVerified ? 'Verified' : 'Unverified'}</Badge>
-          <Badge tone={doctor.isAvailable ? 'blue' : 'slate'}>{doctor.isAvailable ? 'Available' : 'Unavailable'}</Badge>
-          <Badge tone={doctor.isOnline ? 'green' : 'slate'}>{doctor.isOnline ? 'Online' : 'Offline'}</Badge>
-          <Badge tone={doctor.busy ? 'yellow' : 'green'}>{doctor.busy ? 'Busy' : 'Free'}</Badge>
+        <div className="grid gap-2 sm:grid-cols-2">
+          <Badge tone={doctor.isActive ? 'green' : 'slate'}>{doctor.isActive ? t('doctors.active') : t('doctors.inactive')}</Badge>
+          <Badge tone={doctor.isVerified ? 'primary' : 'slate'}>{doctor.isVerified ? t('doctors.verified') : t('doctors.unverified')}</Badge>
+          <Badge tone={doctor.isAvailable ? 'blue' : 'slate'}>{doctor.isAvailable ? t('doctors.available') : t('doctors.unavailable')}</Badge>
+          <Badge tone={doctor.isOnline ? 'green' : 'slate'}>{doctor.isOnline ? t('doctors.online') : t('doctors.offline')}</Badge>
+          <Badge tone={doctor.busy ? 'yellow' : 'green'}>{doctor.busy ? t('doctors.busy') : t('doctors.free')}</Badge>
         </div>
       ),
     },
     {
       key: 'createdAt',
-      header: 'Created',
+      header: t('doctors.created'),
+      className: 'min-w-[140px] whitespace-nowrap',
       cell: (doctor) => formatDate(doctor.createdAt),
     },
     {
       key: 'actions',
-      header: 'Actions',
-      className: 'text-right',
+      header: t('doctors.actions'),
+      className: 'min-w-[150px] text-right',
       cell: (doctor) => (
         <div className="flex justify-end gap-2">
           <Link to={`${basePath}/${doctor.id}`}>
-            <Button type="button" variant="secondary" size="icon" aria-label="Open doctor details">
+            <Button type="button" variant="secondary" size="icon" aria-label={t('doctors.openDoctor')}>
               <Eye className="h-4 w-4" aria-hidden="true" />
             </Button>
           </Link>
           <Link to={`${basePath}/${doctor.id}/edit`}>
-            <Button type="button" variant="secondary" size="icon" aria-label="Edit doctor">
+            <Button type="button" variant="secondary" size="icon" aria-label={t('doctors.editDoctor')}>
               <Pencil className="h-4 w-4" aria-hidden="true" />
             </Button>
           </Link>
@@ -206,7 +217,7 @@ export function DoctorsListPage() {
             type="button"
             variant="secondary"
             size="icon"
-            aria-label={doctor.isActive ? 'Deactivate doctor' : 'Activate doctor'}
+            aria-label={doctor.isActive ? t('doctors.deactivateDoctor') : t('doctors.activateDoctor')}
             onClick={() => void handleToggleActive(doctor)}
           >
             <Power className="h-4 w-4" aria-hidden="true" />
@@ -214,7 +225,7 @@ export function DoctorsListPage() {
         </div>
       ),
     },
-  ], [basePath, branchMap, handleToggleActive, mode]);
+  ], [basePath, branchMap, handleToggleActive, mode, t]);
 
   if ((mode === 'clinic' && !isClinicAdmin) || (mode === 'branch' && !isBranchAdmin)) {
     return <Navigate to="/home" replace />;
@@ -240,18 +251,17 @@ export function DoctorsListPage() {
   return (
     <div className="space-y-6">
       <PageHeader
-        title={mode === 'clinic' ? 'Clinic doctors' : 'Branch doctors'}
-        description="Manage doctor profiles, statuses, and schedule-ready staff."
+        title={mode === 'clinic' ? t('doctors.pageTitle') : t('doctors.branchPageTitle')}
         actions={
           <>
             <Button type="button" variant="secondary" onClick={handleExportCsv} disabled={filteredDoctors.length === 0}>
               <Download className="h-4 w-4" aria-hidden="true" />
-              Export CSV
+              {t('doctors.export')}
             </Button>
             <Link to={`${basePath}/create`}>
               <Button type="button">
                 <Plus className="h-4 w-4" aria-hidden="true" />
-                Create doctor
+                {t('doctors.create')}
               </Button>
             </Link>
           </>
@@ -260,48 +270,48 @@ export function DoctorsListPage() {
 
       <Card>
         <CardHeader className="space-y-4">
-          <SearchInput value={search} onChange={(event) => setSearch(event.target.value)} onClear={() => setSearch('')} placeholder="Search by full name, email, phone, or specialist" />
+          <SearchInput value={search} onChange={(event) => setSearch(event.target.value)} onClear={() => setSearch('')} placeholder={t('doctors.searchPlaceholder')} />
           <div className="grid gap-4 md:grid-cols-5">
             <Select value={activeFilter} onChange={(event) => setActiveFilter(event.target.value)}>
-              <option value="all">All active states</option>
-              <option value="yes">Active</option>
-              <option value="no">Inactive</option>
+              <option value="all">{t('doctors.activeFilter')}</option>
+              <option value="yes">{t('doctors.activeYes')}</option>
+              <option value="no">{t('doctors.activeNo')}</option>
             </Select>
             <Select value={verifiedFilter} onChange={(event) => setVerifiedFilter(event.target.value)}>
-              <option value="all">All verification states</option>
-              <option value="yes">Verified</option>
-              <option value="no">Unverified</option>
+              <option value="all">{t('doctors.verifiedFilter')}</option>
+              <option value="yes">{t('doctors.verifiedYes')}</option>
+              <option value="no">{t('doctors.verifiedNo')}</option>
             </Select>
             <Select value={availableFilter} onChange={(event) => setAvailableFilter(event.target.value)}>
-              <option value="all">All availability states</option>
-              <option value="yes">Available</option>
-              <option value="no">Unavailable</option>
+              <option value="all">{t('doctors.availableFilter')}</option>
+              <option value="yes">{t('doctors.availableYes')}</option>
+              <option value="no">{t('doctors.availableNo')}</option>
             </Select>
             <Select value={onlineFilter} onChange={(event) => setOnlineFilter(event.target.value)}>
-              <option value="all">All online states</option>
-              <option value="yes">Online</option>
-              <option value="no">Offline</option>
+              <option value="all">{t('doctors.onlineFilter')}</option>
+              <option value="yes">{t('doctors.onlineYes')}</option>
+              <option value="no">{t('doctors.onlineNo')}</option>
             </Select>
             <Select value={busyFilter} onChange={(event) => setBusyFilter(event.target.value)}>
-              <option value="all">All workload states</option>
-              <option value="yes">Busy</option>
-              <option value="no">Free</option>
+              <option value="all">{t('doctors.busyFilter')}</option>
+              <option value="yes">{t('doctors.busyYes')}</option>
+              <option value="no">{t('doctors.busyNo')}</option>
             </Select>
           </div>
         </CardHeader>
         <CardContent>
-          {isLoading ? <LoadingState label="Loading doctors..." /> : null}
-          {error ? <ErrorState title="Unable to load doctors" description={error} actionLabel="Retry" onAction={() => void loadDoctors()} /> : null}
+          {isLoading ? <LoadingState label={t('doctors.loadingMany')} /> : null}
+          {error ? <ErrorState title={t('doctors.loadListFailed')} description={error} actionLabel={t('common.retry')} onAction={() => void loadDoctors()} /> : null}
           {!isLoading && !error ? (
             <DataTable
               columns={columns}
               data={filteredDoctors}
               getRowKey={(doctor) => doctor.id}
-              emptyTitle="No doctors found"
-              emptyDescription="Create a doctor or adjust the current filters."
+              emptyTitle={t('doctors.emptyTitle')}
+              emptyDescription={t('doctors.emptyDescription')}
             />
           ) : null}
-          {isSubmitting && !isLoading ? <p className="mt-4 text-sm text-slate-500">Updating doctor status...</p> : null}
+          {isSubmitting && !isLoading ? <p className="mt-4 text-sm text-slate-500">{t('doctors.updatingStatus')}</p> : null}
         </CardContent>
       </Card>
     </div>

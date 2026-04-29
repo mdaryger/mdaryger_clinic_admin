@@ -8,6 +8,7 @@ import { Card, CardContent, CardHeader } from '../../components/ui/Card';
 import { ErrorState } from '../../components/ui/ErrorState';
 import { LoadingState } from '../../components/ui/LoadingState';
 import { PageHeader } from '../../components/ui/PageHeader';
+import { useI18n } from '../../i18n/useI18n';
 import { getAdminUserById, type AdminUser } from '../../services/adminUserService';
 import { useAuthStore } from '../../store/authStore';
 
@@ -66,6 +67,7 @@ function formatDate(value: unknown): string {
 }
 
 export function AdminUserDetailsPage() {
+  const { t } = useI18n();
   const { userId } = useParams();
   const { clinicId, isClinicAdmin } = useAuthStore();
   const [adminUser, setAdminUser] = useState<AdminUser | null>(null);
@@ -74,7 +76,7 @@ export function AdminUserDetailsPage() {
 
   const loadAdminUser = useCallback(async () => {
     if (!userId) {
-      setError('Admin user id is missing.');
+      setError(t('adminUsers.missingId'));
       setIsLoading(false);
       return;
     }
@@ -87,17 +89,17 @@ export function AdminUserDetailsPage() {
 
       if (adminUserData && clinicId && adminUserData.clinicId !== clinicId) {
         setAdminUser(null);
-        setError('This admin user is not available for the current clinic.');
+        setError(t('adminUsers.unavailableCurrentClinic'));
         return;
       }
 
       setAdminUser(adminUserData);
     } catch (unknownError) {
-      setError(unknownError instanceof Error ? unknownError.message : 'Unable to load admin user.');
+      setError(unknownError instanceof Error ? unknownError.message : t('adminUsers.loadFailed'));
     } finally {
       setIsLoading(false);
     }
-  }, [clinicId, userId]);
+  }, [clinicId, userId, t]);
 
   useEffect(() => {
     void loadAdminUser();
@@ -108,27 +110,27 @@ export function AdminUserDetailsPage() {
   }
 
   if (isLoading) {
-    return <LoadingState label="Loading admin user..." />;
+    return <LoadingState label={t('adminUsers.loadingOne')} />;
   }
 
   if (error) {
-    return <ErrorState title="Unable to load admin user" description={error} actionLabel="Retry" onAction={() => void loadAdminUser()} />;
+    return <ErrorState title={t('adminUsers.loadFailedTitle')} description={error} actionLabel={t('common.retry')} onAction={() => void loadAdminUser()} />;
   }
 
   if (!adminUser) {
-    return <ErrorState title="Admin user not found" description="The requested admin user does not exist." />;
+    return <ErrorState title={t('adminUsers.notFoundTitle')} description={t('adminUsers.notFoundDescription')} />;
   }
 
   return (
     <div className="space-y-6">
       <PageHeader
         title={adminUser.displayName || `${adminUser.firstName} ${adminUser.lastName}`.trim()}
-        description={formatRole(adminUser.normalizedRole)}
+        description={adminUser.normalizedRole === 'clinic_branch_admin' ? t('adminUsers.branchAdmin') : t('adminUsers.clinicAdmin')}
         actions={
           <Link to="/admin-users">
             <Button type="button" variant="secondary">
               <ArrowLeft className="h-4 w-4" aria-hidden="true" />
-              Back
+              {t('adminUsers.back')}
             </Button>
           </Link>
         }
@@ -144,8 +146,8 @@ export function AdminUserDetailsPage() {
               <h2 className="mt-4 text-xl font-semibold text-slate-950">{adminUser.displayName || `${adminUser.firstName} ${adminUser.lastName}`.trim()}</h2>
               <p className="mt-1 text-sm text-slate-600">{formatRole(adminUser.normalizedRole)}</p>
               <div className="mt-4 flex flex-wrap justify-center gap-2">
-                <Badge tone={adminUser.isActive ? 'green' : 'slate'}>{adminUser.isActive ? 'Active' : 'Inactive'}</Badge>
-                <Badge tone={adminUser.isEmailVerified ? 'primary' : 'slate'}>{adminUser.isEmailVerified ? 'Email verified' : 'Email not verified'}</Badge>
+                <Badge tone={adminUser.isActive ? 'green' : 'slate'}>{adminUser.isActive ? t('doctors.active') : t('doctors.inactive')}</Badge>
+                <Badge tone={adminUser.isEmailVerified ? 'primary' : 'slate'}>{adminUser.isEmailVerified ? t('adminUsers.emailVerifiedYes') : t('adminUsers.emailVerifiedNo')}</Badge>
               </div>
             </div>
           </CardContent>
@@ -154,20 +156,20 @@ export function AdminUserDetailsPage() {
         <div className="space-y-6">
           <Card>
             <CardHeader>
-              <h2 className="text-base font-semibold text-slate-950">Contacts</h2>
+              <h2 className="text-base font-semibold text-slate-950">{t('adminUsers.contacts')}</h2>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="flex items-start gap-3">
                 <Mail className="mt-0.5 h-4 w-4 text-slate-400" />
                 <div>
-                  <p className="text-sm font-medium text-slate-950">Email</p>
+                  <p className="text-sm font-medium text-slate-950">{t('adminUsers.email')}</p>
                   <p className="text-sm text-slate-600">{adminUser.email || '-'}</p>
                 </div>
               </div>
               <div className="flex items-start gap-3">
                 <Phone className="mt-0.5 h-4 w-4 text-slate-400" />
                 <div>
-                  <p className="text-sm font-medium text-slate-950">Phone</p>
+                  <p className="text-sm font-medium text-slate-950">{t('adminUsers.phone')}</p>
                   <p className="text-sm text-slate-600">{adminUser.phone || '-'}</p>
                 </div>
               </div>
@@ -176,24 +178,24 @@ export function AdminUserDetailsPage() {
 
           <Card>
             <CardHeader>
-              <h2 className="text-base font-semibold text-slate-950">Access</h2>
+              <h2 className="text-base font-semibold text-slate-950">{t('adminUsers.access')}</h2>
             </CardHeader>
             <CardContent className="grid gap-4 sm:grid-cols-2">
-              <DetailItem label="Role" value={formatRole(adminUser.normalizedRole)} />
-              <DetailItem label="Clinic ID" value={adminUser.clinicId} />
-              <DetailItem label="Clinic branch ID" value={adminUser.clinicBranchId} />
+              <DetailItem label={t('adminUsers.role')} value={adminUser.normalizedRole === 'clinic_branch_admin' ? t('adminUsers.branchAdmin') : t('adminUsers.clinicAdmin')} />
+              <DetailItem label={t('adminUsers.clinicId')} value={adminUser.clinicId} />
+              <DetailItem label={t('adminUsers.clinicBranchId')} value={adminUser.clinicBranchId} />
               <DetailItem label="UID" value={adminUser.uid} />
             </CardContent>
           </Card>
 
           <Card>
             <CardHeader>
-              <h2 className="text-base font-semibold text-slate-950">Timeline</h2>
+              <h2 className="text-base font-semibold text-slate-950">{t('adminUsers.timeline')}</h2>
             </CardHeader>
             <CardContent className="grid gap-4 sm:grid-cols-2">
-              <DetailItem label="Created at" value={formatDate(adminUser.createdAt)} />
-              <DetailItem label="Updated at" value={formatDate(adminUser.updatedAt)} />
-              <DetailItem label="Last login at" value={formatDate(adminUser.lastLoginAt)} />
+              <DetailItem label={t('adminUsers.createdAt')} value={formatDate(adminUser.createdAt)} />
+              <DetailItem label={t('adminUsers.updatedAt')} value={formatDate(adminUser.updatedAt)} />
+              <DetailItem label={t('adminUsers.lastLoginAt')} value={formatDate(adminUser.lastLoginAt)} />
             </CardContent>
           </Card>
         </div>

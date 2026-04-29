@@ -110,6 +110,10 @@ export async function getActiveBranchesByClinicId(clinicId: string): Promise<Cli
 }
 
 export async function getBranchById(branchId: string): Promise<ClinicBranch | null> {
+  if (!branchId.trim()) {
+    return null;
+  }
+
   const snapshot = await getDoc(doc(db, CLINIC_BRANCHES_COLLECTION, branchId));
 
   if (!snapshot.exists()) {

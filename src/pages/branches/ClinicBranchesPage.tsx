@@ -10,6 +10,7 @@ import { PageHeader } from '../../components/ui/PageHeader';
 import { SearchInput } from '../../components/ui/SearchInput';
 import { Select } from '../../components/ui/Select';
 import { BranchTable } from '../../features/branches/BranchTable';
+import { useI18n } from '../../i18n/useI18n';
 import {
   getBranchesByClinicId,
   updateBranchStatus,
@@ -22,6 +23,7 @@ import { formatDate } from '../../utils/formatters';
 import { matchesSearchQuery } from '../../utils/search';
 
 export function ClinicBranchesPage() {
+  const { t } = useI18n();
   const { clinicId, isClinicAdmin } = useAuthStore();
   const showToast = useToastStore((state) => state.showToast);
   const [branches, setBranches] = useState<ClinicBranch[]>([]);
@@ -36,7 +38,7 @@ export function ClinicBranchesPage() {
   const loadBranches = useCallback(async () => {
     if (!clinicId) {
       setBranches([]);
-      setError('Clinic is not available for this user.');
+      setError(t('branches.clinicUnavailable'));
       setIsLoading(false);
       return;
     }
@@ -47,11 +49,11 @@ export function ClinicBranchesPage() {
     try {
       setBranches(await getBranchesByClinicId(clinicId));
     } catch (loadError) {
-      setError(loadError instanceof Error ? loadError.message : 'Unable to load branches.');
+      setError(loadError instanceof Error ? loadError.message : t('branches.loadFailed'));
     } finally {
       setIsLoading(false);
     }
-  }, [clinicId]);
+  }, [clinicId, t]);
 
   useEffect(() => {
     void loadBranches();
@@ -89,12 +91,12 @@ export function ClinicBranchesPage() {
       await updateBranchStatus(branch.id, !branch.isActive);
       showToast({
         type: 'success',
-        title: !branch.isActive ? 'Branch activated' : 'Branch deactivated',
+        title: !branch.isActive ? t('branches.activated') : t('branches.deactivated'),
       });
       await loadBranches();
     } catch (toggleError) {
-      const message = toggleError instanceof Error ? toggleError.message : 'Unable to update branch status.';
-      showToast({ type: 'error', title: 'Update failed', description: message });
+      const message = toggleError instanceof Error ? toggleError.message : t('branches.updateFailed');
+      showToast({ type: 'error', title: t('branches.updateFailed'), description: message });
     } finally {
       setIsSubmitting(false);
     }
@@ -118,18 +120,18 @@ export function ClinicBranchesPage() {
   return (
     <div className="space-y-6">
       <PageHeader
-        title="Clinic branches"
-        description="Manage branch locations, status, and main branch assignment."
+        title={t('branches.pageTitle')}
+        description={t('branches.pageDescription')}
         actions={
           <>
             <Button type="button" variant="secondary" onClick={exportBranches} disabled={filteredBranches.length === 0}>
               <Download className="h-4 w-4" aria-hidden="true" />
-              Export CSV
+              {t('branches.export')}
             </Button>
             <Link to="/clinic-branches/create">
               <Button type="button">
                 <Plus className="h-4 w-4" aria-hidden="true" />
-                Create branch
+                {t('branches.create')}
               </Button>
             </Link>
           </>
@@ -142,11 +144,11 @@ export function ClinicBranchesPage() {
             value={search}
             onChange={(event) => setSearch(event.target.value)}
             onClear={() => setSearch('')}
-            placeholder="Search by name, address, phone, or city"
+            placeholder={t('branches.searchPlaceholder')}
           />
           <div className="grid gap-4 md:grid-cols-3">
             <Select value={cityFilter} onChange={(event) => setCityFilter(event.target.value)}>
-              <option value="all">All cities</option>
+              <option value="all">{t('branches.allCities')}</option>
               {cityOptions.map((city) => (
                 <option key={city} value={city}>
                   {city}
@@ -154,22 +156,22 @@ export function ClinicBranchesPage() {
               ))}
             </Select>
             <Select value={activeFilter} onChange={(event) => setActiveFilter(event.target.value)}>
-              <option value="all">All statuses</option>
-              <option value="active">Active only</option>
-              <option value="inactive">Inactive only</option>
+              <option value="all">{t('branches.allStatuses')}</option>
+              <option value="active">{t('branches.activeOnly')}</option>
+              <option value="inactive">{t('branches.inactiveOnly')}</option>
             </Select>
             <Select value={mainBranchFilter} onChange={(event) => setMainBranchFilter(event.target.value)}>
-              <option value="all">All branches</option>
-              <option value="main">Main branch only</option>
-              <option value="regular">Regular branches</option>
+              <option value="all">{t('branches.allBranches')}</option>
+              <option value="main">{t('branches.mainOnly')}</option>
+              <option value="regular">{t('branches.regularOnly')}</option>
             </Select>
           </div>
         </CardHeader>
         <CardContent>
-          {isLoading ? <LoadingState label="Loading branches..." /> : null}
-          {error ? <ErrorState title="Unable to load branches" description={error} actionLabel="Retry" onAction={() => void loadBranches()} /> : null}
+          {isLoading ? <LoadingState label={t('branches.loading')} /> : null}
+          {error ? <ErrorState title={t('branches.loadFailed')} description={error} actionLabel={t('branches.retry')} onAction={() => void loadBranches()} /> : null}
           {!isLoading && !error ? <BranchTable branches={filteredBranches} onToggleActive={(branch) => void handleToggleActive(branch)} /> : null}
-          {isSubmitting && !isLoading ? <p className="mt-4 text-sm text-slate-500">Updating branch status...</p> : null}
+          {isSubmitting && !isLoading ? <p className="mt-4 text-sm text-slate-500">{t('branches.updatingStatus')}</p> : null}
         </CardContent>
       </Card>
     </div>

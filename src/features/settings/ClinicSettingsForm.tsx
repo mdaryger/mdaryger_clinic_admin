@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader } from '../../components/ui/Card';
 import { Checkbox } from '../../components/ui/Checkbox';
 import { Input } from '../../components/ui/Input';
 import { Textarea } from '../../components/ui/Textarea';
+import { useI18n } from '../../i18n/useI18n';
 import { settingsSchema, type SettingsSchemaValues } from '../../lib/validation/settingsSchema';
 import type { Clinic, UpdateClinicData } from '../../types/clinic';
 
@@ -40,6 +41,7 @@ export function ClinicSettingsForm({
   onSubmit,
   onCancel,
 }: ClinicSettingsFormProps) {
+  const { t } = useI18n();
   const {
     register,
     handleSubmit,
@@ -74,44 +76,44 @@ export function ClinicSettingsForm({
     <form className="space-y-6" onSubmit={handleSubmit(submitForm)}>
       <Card>
         <CardHeader>
-          <h2 className="text-base font-semibold text-slate-950">Clinic profile</h2>
+          <h2 className="text-base font-semibold text-slate-950">{t('settings.clinicProfile')}</h2>
         </CardHeader>
         <CardContent className="grid gap-4 sm:grid-cols-2">
-          <Input label="Name" error={errors.name?.message} {...register('name')} />
-          <Input label="Phone" error={errors.phone?.message} {...register('phone')} />
-          <Input className="sm:col-span-2" label="Address" error={errors.address?.message} {...register('address')} />
-          <Input label="Email" type="email" error={errors.email?.message} {...register('email')} />
-          <Input label="Website" type="url" error={errors.website?.message} {...register('website')} />
-          <Input label="Working hours" error={errors.workingHours?.message} {...register('workingHours')} />
+          <Input label={t('settings.name')} error={errors.name?.message} {...register('name')} />
+          <Input label={t('settings.phone')} error={errors.phone?.message} {...register('phone')} />
+          <Input className="sm:col-span-2" label={t('settings.address')} error={errors.address?.message} {...register('address')} />
+          <Input label={t('settings.email')} type="email" error={errors.email?.message} {...register('email')} />
+          <Input label={t('settings.website')} type="url" error={errors.website?.message} {...register('website')} />
+          <Input label={t('settings.workingHours')} error={errors.workingHours?.message} {...register('workingHours')} />
           <div className="sm:col-span-2">
-            <Textarea label="Description" error={errors.description?.message} {...register('description')} />
+            <Textarea label={t('settings.description')} error={errors.description?.message} {...register('description')} />
           </div>
         </CardContent>
       </Card>
 
       <Card>
         <CardHeader>
-          <h2 className="text-base font-semibold text-slate-950">Contact person</h2>
+          <h2 className="text-base font-semibold text-slate-950">{t('settings.contactPerson')}</h2>
         </CardHeader>
         <CardContent className="grid gap-4 sm:grid-cols-3">
-          <Input label="Name" error={errors.contactPersonName?.message} {...register('contactPersonName')} />
-          <Input label="Phone" error={errors.contactPersonPhone?.message} {...register('contactPersonPhone')} />
-          <Input label="Email" type="email" error={errors.contactPersonEmail?.message} {...register('contactPersonEmail')} />
+          <Input label={t('settings.name')} error={errors.contactPersonName?.message} {...register('contactPersonName')} />
+          <Input label={t('settings.phone')} error={errors.contactPersonPhone?.message} {...register('contactPersonPhone')} />
+          <Input label={t('settings.email')} type="email" error={errors.contactPersonEmail?.message} {...register('contactPersonEmail')} />
         </CardContent>
       </Card>
 
       <Card>
         <CardHeader>
-          <h2 className="text-base font-semibold text-slate-950">Capabilities</h2>
+          <h2 className="text-base font-semibold text-slate-950">{t('settings.capabilities')}</h2>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="grid gap-4 sm:grid-cols-2">
-            <Checkbox label="Procedure room" description="Enable this if the clinic provides procedure room services." {...register('isProcedureRoom')} />
-            <Checkbox label="Trauma center" description="Enable this if the clinic operates as a trauma center." {...register('isTraumaCenter')} />
+            <Checkbox label={t('settings.procedureRoom')} description={t('settings.procedureRoomDescription')} {...register('isProcedureRoom')} />
+            <Checkbox label={t('settings.traumaCenter')} description={t('settings.traumaCenterDescription')} {...register('isTraumaCenter')} />
           </div>
           <div className="max-w-sm">
             <Input
-              label="Procedure room price"
+              label={t('settings.procedureRoomPrice')}
               type="number"
               step="0.01"
               disabled={!isProcedureRoom}
@@ -124,10 +126,10 @@ export function ClinicSettingsForm({
 
       <div className="flex justify-end gap-2">
         <Button type="button" variant="secondary" onClick={onCancel}>
-          Cancel
+          {t('common.cancel')}
         </Button>
         <Button type="submit" isLoading={isSubmitting} disabled={!isDirty}>
-          Save changes
+          {t('settings.saveChanges')}
         </Button>
       </div>
     </form>

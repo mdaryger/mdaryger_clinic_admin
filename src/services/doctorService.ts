@@ -159,11 +159,11 @@ export function createDefaultDaySlots(): DaySlots {
 export function createDefaultWeekSlots(): WeekSlots {
   return {
     0: { ...createDefaultDaySlots(), locked: true },
-    1: createDefaultDaySlots(),
-    2: createDefaultDaySlots(),
-    3: createDefaultDaySlots(),
-    4: createDefaultDaySlots(),
-    5: createDefaultDaySlots(),
+    1: { ...createDefaultDaySlots(), locked: true },
+    2: { ...createDefaultDaySlots(), locked: true },
+    3: { ...createDefaultDaySlots(), locked: true },
+    4: { ...createDefaultDaySlots(), locked: true },
+    5: { ...createDefaultDaySlots(), locked: true },
     6: { ...createDefaultDaySlots(), locked: true },
   };
 }

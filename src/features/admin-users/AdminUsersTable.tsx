@@ -4,6 +4,7 @@ import { Link } from 'react-router-dom';
 import { Badge } from '../../components/ui/Badge';
 import { Button } from '../../components/ui/Button';
 import { DataTable, type DataTableColumn } from '../../components/ui/DataTable';
+import { useI18n } from '../../i18n/useI18n';
 import type { AdminUser } from '../../services/adminUserService';
 
 type AdminUsersTableProps = {
@@ -39,55 +40,58 @@ function formatRole(role: AdminUser['normalizedRole']): string {
 }
 
 export function AdminUsersTable({ adminUsers, onToggleActive }: AdminUsersTableProps) {
+  const { t } = useI18n();
   const columns: DataTableColumn<AdminUser>[] = [
     {
       key: 'fullName',
-      header: 'Full name',
+      header: t('adminUsers.fullName'),
       cell: (adminUser) => (
         <div>
           <p className="font-semibold text-slate-950">{adminUser.displayName || `${adminUser.firstName} ${adminUser.lastName}`.trim()}</p>
-          <p className="text-xs text-slate-500">{adminUser.id}</p>
         </div>
       ),
     },
     {
       key: 'email',
-      header: 'Email',
+      header: t('adminUsers.email'),
       cell: (adminUser) => adminUser.email || '-',
     },
     {
       key: 'phone',
-      header: 'Phone',
+      header: t('adminUsers.phone'),
       cell: (adminUser) => adminUser.phone || '-',
     },
     {
       key: 'role',
-      header: 'Role',
-      cell: (adminUser) => formatRole(adminUser.normalizedRole),
+      header: t('adminUsers.role'),
+      cell: (adminUser) =>
+        adminUser.normalizedRole === 'clinic_branch_admin'
+          ? t('adminUsers.branchAdmin')
+          : t('adminUsers.clinicAdmin'),
     },
     {
       key: 'active',
-      header: 'Active',
-      cell: (adminUser) => <Badge tone={adminUser.isActive ? 'green' : 'slate'}>{adminUser.isActive ? 'Active' : 'Inactive'}</Badge>,
+      header: t('adminUsers.active'),
+      cell: (adminUser) => <Badge tone={adminUser.isActive ? 'green' : 'slate'}>{adminUser.isActive ? t('doctors.active') : t('doctors.inactive')}</Badge>,
     },
     {
       key: 'emailVerified',
-      header: 'Email verified',
-      cell: (adminUser) => <Badge tone={adminUser.isEmailVerified ? 'primary' : 'slate'}>{adminUser.isEmailVerified ? 'Verified' : 'Unverified'}</Badge>,
+      header: t('adminUsers.emailVerified'),
+      cell: (adminUser) => <Badge tone={adminUser.isEmailVerified ? 'primary' : 'slate'}>{adminUser.isEmailVerified ? t('doctors.verified') : t('doctors.unverified')}</Badge>,
     },
     {
       key: 'createdAt',
-      header: 'Created',
+      header: t('adminUsers.created'),
       cell: (adminUser) => formatDate(adminUser.createdAt),
     },
     {
       key: 'actions',
-      header: 'Actions',
+      header: t('adminUsers.actions'),
       className: 'text-right',
       cell: (adminUser) => (
         <div className="flex justify-end gap-2">
           <Link to={`/admin-users/${adminUser.id}`}>
-            <Button type="button" variant="secondary" size="icon" aria-label="Open admin user details">
+            <Button type="button" variant="secondary" size="icon" aria-label={t('adminUsers.openAdmin')}>
               <Eye className="h-4 w-4" aria-hidden="true" />
             </Button>
           </Link>
@@ -95,7 +99,7 @@ export function AdminUsersTable({ adminUsers, onToggleActive }: AdminUsersTableP
             type="button"
             variant="secondary"
             size="icon"
-            aria-label={adminUser.isActive ? 'Deactivate admin user' : 'Activate admin user'}
+            aria-label={adminUser.isActive ? t('adminUsers.deactivateAdmin') : t('adminUsers.activateAdmin')}
             onClick={() => onToggleActive(adminUser)}
           >
             <Power className="h-4 w-4" aria-hidden="true" />
@@ -110,8 +114,8 @@ export function AdminUsersTable({ adminUsers, onToggleActive }: AdminUsersTableP
       columns={columns}
       data={adminUsers}
       getRowKey={(adminUser) => adminUser.id}
-      emptyTitle="No admin users found"
-      emptyDescription="Create an admin user or adjust the current search and filters."
+      emptyTitle={t('adminUsers.emptyTitle')}
+      emptyDescription={t('adminUsers.emptyDescription')}
     />
   );
 }

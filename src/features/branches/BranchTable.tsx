@@ -4,6 +4,7 @@ import { Link } from 'react-router-dom';
 import { Badge } from '../../components/ui/Badge';
 import { Button } from '../../components/ui/Button';
 import { DataTable, type DataTableColumn } from '../../components/ui/DataTable';
+import { useI18n } from '../../i18n/useI18n';
 import type { ClinicBranch } from '../../services/branchService';
 
 type BranchTableProps = {
@@ -33,10 +34,12 @@ function formatDate(value: unknown): string {
 }
 
 export function BranchTable({ branches, onToggleActive }: BranchTableProps) {
+  const { t } = useI18n();
+
   const columns: DataTableColumn<ClinicBranch>[] = [
     {
       key: 'name',
-      header: 'Name',
+      header: t('branches.name'),
       cell: (branch) => (
         <div>
           <p className="font-semibold text-slate-950">{branch.name}</p>
@@ -46,42 +49,42 @@ export function BranchTable({ branches, onToggleActive }: BranchTableProps) {
     },
     {
       key: 'city',
-      header: 'City',
+      header: t('branches.city'),
       cell: (branch) => branch.city || '-',
     },
     {
       key: 'address',
-      header: 'Address',
+      header: t('branches.address'),
       cell: (branch) => branch.address || '-',
     },
     {
       key: 'phone',
-      header: 'Phone',
+      header: t('branches.phone'),
       cell: (branch) => branch.phone || '-',
     },
     {
       key: 'active',
-      header: 'Active',
-      cell: (branch) => <Badge tone={branch.isActive ? 'green' : 'slate'}>{branch.isActive ? 'Active' : 'Inactive'}</Badge>,
+      header: t('branches.active'),
+      cell: (branch) => <Badge tone={branch.isActive ? 'green' : 'slate'}>{branch.isActive ? t('branches.activeBadge') : t('branches.inactiveBadge')}</Badge>,
     },
     {
       key: 'main',
-      header: 'Main branch',
-      cell: (branch) => <Badge tone={branch.isMainBranch ? 'primary' : 'slate'}>{branch.isMainBranch ? 'Main' : 'No'}</Badge>,
+      header: t('branches.mainBranch'),
+      cell: (branch) => <Badge tone={branch.isMainBranch ? 'primary' : 'slate'}>{branch.isMainBranch ? t('branches.mainBadge') : t('branches.notMainBadge')}</Badge>,
     },
     {
       key: 'createdAt',
-      header: 'Created',
+      header: t('branches.created'),
       cell: (branch) => formatDate(branch.createdAt),
     },
     {
       key: 'actions',
-      header: 'Actions',
+      header: t('branches.actions'),
       className: 'text-right',
       cell: (branch) => (
         <div className="flex justify-end gap-2">
           <Link to={`/clinic-branches/${branch.id}`}>
-            <Button type="button" variant="secondary" size="icon" aria-label="Open branch details">
+            <Button type="button" variant="secondary" size="icon" aria-label={t('branches.openBranch')}>
               <Eye className="h-4 w-4" aria-hidden="true" />
             </Button>
           </Link>
@@ -90,7 +93,7 @@ export function BranchTable({ branches, onToggleActive }: BranchTableProps) {
             variant="secondary"
             size="icon"
             onClick={() => onToggleActive(branch)}
-            aria-label={branch.isActive ? 'Disable branch' : 'Enable branch'}
+            aria-label={branch.isActive ? t('branches.disableBranch') : t('branches.enableBranch')}
           >
             <Power className="h-4 w-4" aria-hidden="true" />
           </Button>
@@ -104,8 +107,8 @@ export function BranchTable({ branches, onToggleActive }: BranchTableProps) {
       columns={columns}
       data={branches}
       getRowKey={(branch) => branch.id}
-      emptyTitle="No branches found"
-      emptyDescription="Create a branch or adjust the current filters."
+      emptyTitle={t('branches.emptyTitle')}
+      emptyDescription={t('branches.emptyDescription')}
     />
   );
 }

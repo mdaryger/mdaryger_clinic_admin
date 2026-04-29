@@ -1,21 +1,26 @@
 import { CalendarDays, Clock3, Lock } from 'lucide-react';
 
 import { EmptyState } from '../../components/EmptyState';
+import { useI18n } from '../../i18n/useI18n';
 import type { WeekSlots } from '../../services/doctorService';
 
-const WEEKDAY_LABELS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'] as const;
+const WEEKDAY_LABELS_RU = ['Воскресенье', 'Понедельник', 'Вторник', 'Среда', 'Четверг', 'Пятница', 'Суббота'] as const;
+const WEEKDAY_LABELS_KY = ['Жекшемби', 'Дүйшөмбү', 'Шейшемби', 'Шаршемби', 'Бейшемби', 'Жума', 'Ишемби'] as const;
 
 type DoctorScheduleViewProps = {
   weekSlots?: WeekSlots | null;
 };
 
 export function DoctorScheduleView({ weekSlots }: DoctorScheduleViewProps) {
+  const { language } = useI18n();
+  const weekdayLabels = language === 'ky' ? WEEKDAY_LABELS_KY : WEEKDAY_LABELS_RU;
+
   if (!weekSlots || Object.keys(weekSlots).length === 0) {
     return (
       <EmptyState
         icon={CalendarDays}
-        title="Schedule not configured"
-        description="Working slots will appear here after the doctor schedule is configured."
+        title={language === 'ky' ? 'График коюлган эмес' : 'График не настроен'}
+        description={language === 'ky' ? 'Дарыгердин графиги түзүлгөндөн кийин слоттор ушул жерде көрүнөт.' : 'Слоты появятся здесь после настройки графика врача.'}
       />
     );
   }
@@ -29,10 +34,10 @@ export function DoctorScheduleView({ weekSlots }: DoctorScheduleViewProps) {
           <section key={dayIndex} className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
             <div className="flex items-start justify-between gap-3">
               <div>
-                <h3 className="text-base font-semibold text-slate-950">{WEEKDAY_LABELS[Number(dayIndex)]}</h3>
+                <h3 className="text-base font-semibold text-slate-950">{weekdayLabels[Number(dayIndex)]}</h3>
                 <p className="mt-1 text-sm text-slate-500">
                   {daySlots.locked
-                    ? 'Day is locked'
+                    ? language === 'ky' ? 'Бул күн жабык' : 'Этот день закрыт'
                     : `${daySlots.morningStart} - ${daySlots.morningEnd}, ${daySlots.eveningStart} - ${daySlots.eveningEnd}`}
                 </p>
               </div>
@@ -41,9 +46,9 @@ export function DoctorScheduleView({ weekSlots }: DoctorScheduleViewProps) {
 
             <div className="mt-4">
               {daySlots.locked ? (
-                <p className="text-sm text-slate-500">Unavailable</p>
+                <p className="text-sm text-slate-500">{language === 'ky' ? 'Жеткиликсиз' : 'Недоступно'}</p>
               ) : enabledSlots.length === 0 ? (
-                <p className="text-sm text-slate-500">No active slots for this day.</p>
+                <p className="text-sm text-slate-500">{language === 'ky' ? 'Бул күн үчүн активдүү слоттор жок.' : 'Для этого дня нет активных слотов.'}</p>
               ) : (
                 <div className="flex flex-wrap gap-2">
                   {enabledSlots.map((slot) => (

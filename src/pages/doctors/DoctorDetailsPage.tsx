@@ -10,6 +10,7 @@ import { ErrorState } from '../../components/ui/ErrorState';
 import { LoadingState } from '../../components/ui/LoadingState';
 import { PageHeader } from '../../components/ui/PageHeader';
 import { DoctorScheduleView } from '../../features/doctors/DoctorScheduleView';
+import { useI18n } from '../../i18n/useI18n';
 import { getBranchById } from '../../services/branchService';
 import { getCitiesByCountry, type City } from '../../services/cityService';
 import { getAllCountries, type Country } from '../../services/countryService';
@@ -32,12 +33,13 @@ function DetailItem({ label, value }: { label: string; value: string }) {
   return (
     <div>
       <p className="text-xs font-semibold uppercase text-slate-500">{label}</p>
-      <p className="mt-1 text-sm text-slate-950">{value || 'Not specified'}</p>
+      <p className="mt-1 text-sm text-slate-950">{value}</p>
     </div>
   );
 }
 
 export function DoctorDetailsPage() {
+  const { t } = useI18n();
   const { pathname } = useLocation();
   const { doctorId } = useParams();
   const navigate = useNavigate();
@@ -57,7 +59,7 @@ export function DoctorDetailsPage() {
 
   const loadDoctor = useCallback(async () => {
     if (!doctorId) {
-      setError('Doctor id is missing.');
+      setError(t('doctors.missingId'));
       setIsLoading(false);
       return;
     }
@@ -71,13 +73,13 @@ export function DoctorDetailsPage() {
       if (doctorData) {
         if (clinicId && doctorData.clinicId !== clinicId) {
           setDoctor(null);
-          setError('This doctor is not available for the current clinic.');
+          setError(t('doctors.unavailableCurrentClinic'));
           return;
         }
 
         if (mode === 'branch' && clinicBranchId && doctorData.clinicBranchId !== clinicBranchId) {
           setDoctor(null);
-          setError('This doctor is not available for the current branch.');
+          setError(t('doctors.unavailableCurrentBranch'));
           return;
         }
       }
@@ -89,7 +91,7 @@ export function DoctorDetailsPage() {
       }
 
       const [branchesData, countries, departments] = await Promise.all([
-        getBranchById(doctorData.clinicBranchId),
+        doctorData.clinicBranchId ? getBranchById(doctorData.clinicBranchId) : Promise.resolve(null),
         getAllCountries(),
         getDepartmentsByDoctorType(doctorData.doctorType),
       ]);
@@ -105,11 +107,11 @@ export function DoctorDetailsPage() {
         setCity(null);
       }
     } catch (unknownError) {
-      setError(unknownError instanceof Error ? unknownError.message : 'Unable to load doctor.');
+      setError(unknownError instanceof Error ? unknownError.message : t('doctors.loadFailed'));
     } finally {
       setIsLoading(false);
     }
-  }, [clinicBranchId, clinicId, doctorId, mode]);
+  }, [clinicBranchId, clinicId, doctorId, mode, t]);
 
   useEffect(() => {
     void loadDoctor();
@@ -121,27 +123,27 @@ export function DoctorDetailsPage() {
     }
 
     return [
-      { label: 'Diploma', url: doctor.diplomaUrl },
-      { label: 'Passport', url: doctor.passportUrl },
-      { label: 'Licence', url: doctor.licenceUrl },
-      { label: 'Certificate', url: doctor.certificateUrl },
+      { label: t('doctors.diploma'), url: doctor.diplomaUrl },
+      { label: t('doctors.passport'), url: doctor.passportUrl },
+      { label: t('doctors.licence'), url: doctor.licenceUrl },
+      { label: t('doctors.certificate'), url: doctor.certificateUrl },
     ].filter((item) => item.url);
-  }, [doctor]);
+  }, [doctor, t]);
 
   if ((mode === 'clinic' && !isClinicAdmin) || (mode === 'branch' && !isBranchAdmin)) {
     return <Navigate to="/home" replace />;
   }
 
   if (isLoading) {
-    return <LoadingState label="Loading doctor..." />;
+    return <LoadingState label={t('doctors.loadingOne')} />;
   }
 
   if (error) {
-    return <ErrorState title="Unable to load doctor" description={error} actionLabel="Retry" onAction={() => void loadDoctor()} />;
+    return <ErrorState title={t('doctors.loadFailed')} description={error} actionLabel={t('common.retry')} onAction={() => void loadDoctor()} />;
   }
 
   if (!doctor) {
-    return <ErrorState title="Doctor not found" description="The requested doctor does not exist." />;
+    return <ErrorState title={t('doctors.notFoundTitle')} description={t('doctors.notFoundDescription')} />;
   }
 
   const doctorName = [doctor.name, doctor.lastName, doctor.middleName].filter(Boolean).join(' ');
@@ -155,11 +157,11 @@ export function DoctorDetailsPage() {
 
     try {
       await deleteDoctor(doctorId);
-      showToast({ type: 'success', title: 'Doctor deleted' });
+      showToast({ type: 'success', title: t('doctors.deleteSuccess') });
       navigate(basePath);
     } catch (unknownError) {
-      const message = unknownError instanceof Error ? unknownError.message : 'Unable to delete doctor.';
-      showToast({ type: 'error', title: 'Delete failed', description: message });
+      const message = unknownError instanceof Error ? unknownError.message : t('doctors.deleteFailed');
+      showToast({ type: 'error', title: t('doctors.deleteFailed'), description: message });
     } finally {
       setIsDeleting(false);
       setIsDeleteDialogOpen(false);
@@ -170,24 +172,24 @@ export function DoctorDetailsPage() {
     <div className="space-y-6">
       <PageHeader
         title={doctorName}
-        description={doctor.specialist || 'Doctor profile'}
+        description={doctor.specialist || t('doctors.detailsFallback')}
         actions={
           <>
             <Link to={basePath}>
               <Button type="button" variant="secondary">
                 <ArrowLeft className="h-4 w-4" aria-hidden="true" />
-                Back
+                {t('doctors.back')}
               </Button>
             </Link>
             <Link to={`${basePath}/${doctor.id}/edit`}>
               <Button type="button" variant="secondary">
                 <Pencil className="h-4 w-4" aria-hidden="true" />
-                Edit
+                {t('doctors.edit')}
               </Button>
             </Link>
             <Button type="button" variant="danger" onClick={() => setIsDeleteDialogOpen(true)}>
               <Trash2 className="h-4 w-4" aria-hidden="true" />
-              Delete
+              {t('doctors.delete')}
             </Button>
           </>
         }
@@ -207,11 +209,11 @@ export function DoctorDetailsPage() {
               <h2 className="mt-4 text-xl font-semibold text-slate-950">{doctorName}</h2>
               <p className="mt-1 text-sm text-slate-600">{doctor.specialist || '-'}</p>
               <div className="mt-4 flex flex-wrap justify-center gap-2">
-                <Badge tone={doctor.isActive ? 'green' : 'slate'}>{doctor.isActive ? 'Active' : 'Inactive'}</Badge>
-                <Badge tone={doctor.isVerified ? 'primary' : 'slate'}>{doctor.isVerified ? 'Verified' : 'Unverified'}</Badge>
-                <Badge tone={doctor.isOnline ? 'green' : 'slate'}>{doctor.isOnline ? 'Online' : 'Offline'}</Badge>
-                <Badge tone={doctor.busy ? 'yellow' : 'green'}>{doctor.busy ? 'Busy' : 'Free'}</Badge>
-                <Badge tone={doctor.isAvailable ? 'blue' : 'slate'}>{doctor.isAvailable ? 'Available' : 'Unavailable'}</Badge>
+                <Badge tone={doctor.isActive ? 'green' : 'slate'}>{doctor.isActive ? t('doctors.active') : t('doctors.inactive')}</Badge>
+                <Badge tone={doctor.isVerified ? 'primary' : 'slate'}>{doctor.isVerified ? t('doctors.verified') : t('doctors.unverified')}</Badge>
+                <Badge tone={doctor.isOnline ? 'green' : 'slate'}>{doctor.isOnline ? t('doctors.online') : t('doctors.offline')}</Badge>
+                <Badge tone={doctor.busy ? 'yellow' : 'green'}>{doctor.busy ? t('doctors.busy') : t('doctors.free')}</Badge>
+                <Badge tone={doctor.isAvailable ? 'blue' : 'slate'}>{doctor.isAvailable ? t('doctors.available') : t('doctors.unavailable')}</Badge>
               </div>
             </div>
           </CardContent>
@@ -220,19 +222,19 @@ export function DoctorDetailsPage() {
         <div className="space-y-6">
           <Card>
             <CardHeader>
-              <h2 className="text-base font-semibold text-slate-950">Profile</h2>
+              <h2 className="text-base font-semibold text-slate-950">{t('doctors.profile')}</h2>
             </CardHeader>
             <CardContent className="grid gap-4 sm:grid-cols-2">
-              <DetailItem label="Department" value={department ? getDepartmentDisplayName(department) : doctor.departmentId} />
-              <DetailItem label="Doctor type" value={doctor.doctorType} />
-              <DetailItem label="Clinic" value={doctor.clinicName} />
-              <DetailItem label="Branch" value={branchName || doctor.clinicBranchId} />
-              <DetailItem label="City / Country" value={[city?.name.ru || city?.name.en, country?.name].filter(Boolean).join(', ')} />
-              <DetailItem label="Price / Experience" value={`${doctor.price} / ${doctor.experience} years`} />
-              <DetailItem label="Registration number" value={doctor.registrationNumber} />
-              <DetailItem label="Work place" value={doctor.workPlace} />
+              <DetailItem label={t('doctors.department')} value={department ? getDepartmentDisplayName(department) : doctor.departmentId || t('doctors.notSpecified')} />
+              <DetailItem label={t('doctors.doctorType')} value={doctor.doctorType || t('doctors.notSpecified')} />
+              <DetailItem label={t('doctors.clinic')} value={doctor.clinicName || t('doctors.notSpecified')} />
+              <DetailItem label={t('doctors.branch')} value={branchName || doctor.clinicBranchId || t('doctors.notSpecified')} />
+              <DetailItem label={t('doctors.cityCountry')} value={[city?.name.ru || city?.name.en, country?.name].filter(Boolean).join(', ') || t('doctors.notSpecified')} />
+              <DetailItem label={t('doctors.priceExperience')} value={`${doctor.price} / ${doctor.experience} ${t('doctors.yearsSuffix')}`} />
+              <DetailItem label={t('doctors.registrationNumber')} value={doctor.registrationNumber || t('doctors.notSpecified')} />
+              <DetailItem label={t('doctors.workPlace')} value={doctor.workPlace || t('doctors.notSpecified')} />
               <div className="sm:col-span-2">
-                <DetailItem label="About me" value={doctor.aboutMe} />
+                <DetailItem label={t('doctors.aboutMe')} value={doctor.aboutMe || t('doctors.notSpecified')} />
               </div>
             </CardContent>
           </Card>
@@ -240,27 +242,27 @@ export function DoctorDetailsPage() {
           <div className="grid gap-6 xl:grid-cols-2">
             <Card>
               <CardHeader>
-                <h2 className="text-base font-semibold text-slate-950">Contacts</h2>
+                <h2 className="text-base font-semibold text-slate-950">{t('doctors.contacts')}</h2>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="flex items-start gap-3">
                   <Mail className="mt-0.5 h-4 w-4 text-slate-400" />
                   <div>
                     <p className="text-sm font-medium text-slate-950">Email</p>
-                    <p className="text-sm text-slate-600">{doctor.email || 'Not specified'}</p>
+                    <p className="text-sm text-slate-600">{doctor.email || t('doctors.notSpecified')}</p>
                   </div>
                 </div>
                 <div className="flex items-start gap-3">
                   <Phone className="mt-0.5 h-4 w-4 text-slate-400" />
                   <div>
-                    <p className="text-sm font-medium text-slate-950">Phone</p>
-                    <p className="text-sm text-slate-600">{doctor.phone || 'Not specified'}</p>
+                    <p className="text-sm font-medium text-slate-950">{t('doctors.phone')}</p>
+                    <p className="text-sm text-slate-600">{doctor.phone || t('doctors.notSpecified')}</p>
                   </div>
                 </div>
                 <div className="flex items-start gap-3">
                   <MapPin className="mt-0.5 h-4 w-4 text-slate-400" />
                   <div>
-                    <p className="text-sm font-medium text-slate-950">Current location</p>
+                    <p className="text-sm font-medium text-slate-950">{t('doctors.currentLocation')}</p>
                     <p className="text-sm text-slate-600">
                       {doctor.currentLocation.latitude ?? '-'}, {doctor.currentLocation.longitude ?? '-'}
                     </p>
@@ -271,22 +273,22 @@ export function DoctorDetailsPage() {
 
             <Card>
               <CardHeader>
-                <h2 className="text-base font-semibold text-slate-950">Metrics</h2>
+                <h2 className="text-base font-semibold text-slate-950">{t('doctors.metrics')}</h2>
               </CardHeader>
               <CardContent className="grid gap-4 sm:grid-cols-2">
-                <DetailItem label="Balance" value={String(doctor.balance)} />
-                <DetailItem label="Revenue" value={String(doctor.revenue)} />
-                <DetailItem label="Average rating" value={String(doctor.averageRating)} />
-                <DetailItem label="Review count" value={String(doctor.reviewCount)} />
-                <DetailItem label="Service radius" value={`${doctor.serviceRadius} km`} />
-                <DetailItem label="Location tracking" value={doctor.locationTrackingEnabled ? 'Enabled' : 'Disabled'} />
+                <DetailItem label={t('doctors.balance')} value={String(doctor.balance)} />
+                <DetailItem label={t('doctors.revenue')} value={String(doctor.revenue)} />
+                <DetailItem label={t('doctors.averageRating')} value={String(doctor.averageRating)} />
+                <DetailItem label={t('doctors.reviewCount')} value={String(doctor.reviewCount)} />
+                <DetailItem label={t('doctors.serviceRadius')} value={`${doctor.serviceRadius} ${t('doctors.kmSuffix')}`} />
+                <DetailItem label={t('doctors.locationTracking')} value={doctor.locationTrackingEnabled ? t('doctors.enabled') : t('doctors.disabled')} />
               </CardContent>
             </Card>
           </div>
 
           <Card>
             <CardHeader>
-              <h2 className="text-base font-semibold text-slate-950">Documents</h2>
+              <h2 className="text-base font-semibold text-slate-950">{t('doctors.documents')}</h2>
             </CardHeader>
             <CardContent>
               {documentLinks.length ? (
@@ -305,14 +307,14 @@ export function DoctorDetailsPage() {
                   ))}
                 </div>
               ) : (
-                <p className="text-sm text-slate-500">No documents attached yet.</p>
+                <p className="text-sm text-slate-500">{t('doctors.noDocuments')}</p>
               )}
             </CardContent>
           </Card>
 
           <Card>
             <CardHeader>
-              <h2 className="text-base font-semibold text-slate-950">Schedule</h2>
+              <h2 className="text-base font-semibold text-slate-950">{t('doctors.schedule')}</h2>
             </CardHeader>
             <CardContent>
               <DoctorScheduleView weekSlots={doctor.weekSlots} />
@@ -323,9 +325,10 @@ export function DoctorDetailsPage() {
 
       <ConfirmDialog
         isOpen={isDeleteDialogOpen}
-        title="Delete doctor"
-        description={`Delete ${doctorName}? Related requests and appointments will also be removed.`}
-        confirmLabel="Delete"
+        title={t('doctors.deleteConfirmTitle')}
+        description={t('doctors.deleteConfirmDescription', { name: doctorName })}
+        confirmLabel={t('doctors.delete')}
+        cancelLabel={t('common.cancel')}
         isLoading={isDeleting}
         onConfirm={() => void handleDelete()}
         onCancel={() => setIsDeleteDialogOpen(false)}

@@ -10,6 +10,7 @@ import { PageHeader } from '../../components/ui/PageHeader';
 import { SearchInput } from '../../components/ui/SearchInput';
 import { Select } from '../../components/ui/Select';
 import { AdminUsersTable } from '../../features/admin-users/AdminUsersTable';
+import { useI18n } from '../../i18n/useI18n';
 import { getAdminUsersByClinicId, updateAdminStatus, type AdminUser } from '../../services/adminUserService';
 import { useAuthStore } from '../../store/authStore';
 import { useToastStore } from '../../store/toastStore';
@@ -18,6 +19,7 @@ import { formatDate, formatFullName, formatRole } from '../../utils/formatters';
 import { matchesSearchQuery } from '../../utils/search';
 
 export function AdminUsersPage() {
+  const { t } = useI18n();
   const { clinicId, isClinicAdmin } = useAuthStore();
   const showToast = useToastStore((state) => state.showToast);
   const [adminUsers, setAdminUsers] = useState<AdminUser[]>([]);
@@ -30,7 +32,7 @@ export function AdminUsersPage() {
   const loadAdminUsers = useCallback(async () => {
     if (!clinicId) {
       setAdminUsers([]);
-      setError('Clinic is not available for this user.');
+      setError(t('adminUsers.clinicUnavailable'));
       setIsLoading(false);
       return;
     }
@@ -41,11 +43,11 @@ export function AdminUsersPage() {
     try {
       setAdminUsers(await getAdminUsersByClinicId(clinicId));
     } catch (unknownError) {
-      setError(unknownError instanceof Error ? unknownError.message : 'Unable to load admin users.');
+      setError(unknownError instanceof Error ? unknownError.message : t('adminUsers.loadFailed'));
     } finally {
       setIsLoading(false);
     }
-  }, [clinicId]);
+  }, [clinicId, t]);
 
   useEffect(() => {
     void loadAdminUsers();
@@ -72,11 +74,11 @@ export function AdminUsersPage() {
 
     try {
       await updateAdminStatus(adminUser.id, adminUser.role, !adminUser.isActive);
-      showToast({ type: 'success', title: !adminUser.isActive ? 'Admin user activated' : 'Admin user deactivated' });
+      showToast({ type: 'success', title: !adminUser.isActive ? t('adminUsers.activated') : t('adminUsers.deactivated') });
       await loadAdminUsers();
     } catch (unknownError) {
-      const message = unknownError instanceof Error ? unknownError.message : 'Unable to update admin user status.';
-      showToast({ type: 'error', title: 'Update failed', description: message });
+      const message = unknownError instanceof Error ? unknownError.message : t('adminUsers.updateFailed');
+      showToast({ type: 'error', title: t('adminUsers.updateFailedTitle'), description: message });
     } finally {
       setIsSubmitting(false);
     }
@@ -86,13 +88,13 @@ export function AdminUsersPage() {
     exportToCsv(
       'admin-users.csv',
       filteredAdminUsers.map((adminUser) => ({
-        'Full Name': adminUser.displayName || formatFullName(adminUser),
-        Email: adminUser.email,
-        Phone: adminUser.phone,
-        Role: formatRole(adminUser.normalizedRole),
-        Active: adminUser.isActive ? 'Yes' : 'No',
-        'Email Verified': adminUser.isEmailVerified ? 'Yes' : 'No',
-        'Created At': formatDate(adminUser.createdAt),
+        [t('adminUsers.fullName')]: adminUser.displayName || formatFullName(adminUser),
+        [t('adminUsers.email')]: adminUser.email,
+        [t('adminUsers.phone')]: adminUser.phone,
+        [t('adminUsers.role')]: formatRole(adminUser.normalizedRole),
+        [t('adminUsers.active')]: adminUser.isActive ? t('adminUsers.yes') : t('adminUsers.no'),
+        [t('adminUsers.emailVerified')]: adminUser.isEmailVerified ? t('adminUsers.yes') : t('adminUsers.no'),
+        [t('adminUsers.createdAt')]: formatDate(adminUser.createdAt),
       })),
     );
   }
@@ -100,18 +102,18 @@ export function AdminUsersPage() {
   return (
     <div className="space-y-6">
       <PageHeader
-        title="Admin users"
-        description="Manage clinic admins and branch admins for the current clinic."
+        title={t('adminUsers.pageTitle')}
+        description={t('adminUsers.pageDescription')}
         actions={
           <>
             <Button type="button" variant="secondary" onClick={handleExportCsv} disabled={filteredAdminUsers.length === 0}>
               <Download className="h-4 w-4" aria-hidden="true" />
-              Export CSV
+              {t('adminUsers.export')}
             </Button>
             <Link to="/admin-users/create">
               <Button type="button">
                 <Plus className="h-4 w-4" aria-hidden="true" />
-                Create admin
+                {t('adminUsers.create')}
               </Button>
             </Link>
           </>
@@ -120,20 +122,20 @@ export function AdminUsersPage() {
 
       <Card>
         <CardHeader className="space-y-4">
-          <SearchInput value={search} onChange={(event) => setSearch(event.target.value)} onClear={() => setSearch('')} placeholder="Search by name, email, or phone" />
+          <SearchInput value={search} onChange={(event) => setSearch(event.target.value)} onClear={() => setSearch('')} placeholder={t('adminUsers.searchPlaceholder')} />
           <div className="grid gap-4 md:grid-cols-3">
             <Select value={roleFilter} onChange={(event) => setRoleFilter(event.target.value)}>
-              <option value="all">All roles</option>
-              <option value="clinic_admin">Clinic admin</option>
-              <option value="clinic_branch_admin">Clinic branch admin</option>
+              <option value="all">{t('adminUsers.allRoles')}</option>
+              <option value="clinic_admin">{t('adminUsers.clinicAdmin')}</option>
+              <option value="clinic_branch_admin">{t('adminUsers.branchAdmin')}</option>
             </Select>
           </div>
         </CardHeader>
         <CardContent>
-          {isLoading ? <LoadingState label="Loading admin users..." /> : null}
-          {error ? <ErrorState title="Unable to load admin users" description={error} actionLabel="Retry" onAction={() => void loadAdminUsers()} /> : null}
+          {isLoading ? <LoadingState label={t('adminUsers.loading')} /> : null}
+          {error ? <ErrorState title={t('adminUsers.loadFailedTitle')} description={error} actionLabel={t('common.retry')} onAction={() => void loadAdminUsers()} /> : null}
           {!isLoading && !error ? <AdminUsersTable adminUsers={filteredAdminUsers} onToggleActive={(adminUser) => void handleToggleActive(adminUser)} /> : null}
-          {isSubmitting && !isLoading ? <p className="mt-4 text-sm text-slate-500">Updating admin user status...</p> : null}
+          {isSubmitting && !isLoading ? <p className="mt-4 text-sm text-slate-500">{t('adminUsers.updatingStatus')}</p> : null}
         </CardContent>
       </Card>
     </div>

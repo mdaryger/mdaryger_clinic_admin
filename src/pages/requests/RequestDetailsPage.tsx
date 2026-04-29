@@ -7,16 +7,17 @@ import { ErrorState } from '../../components/ui/ErrorState';
 import { LoadingState } from '../../components/ui/LoadingState';
 import { PageHeader } from '../../components/ui/PageHeader';
 import { RequestDetailsSections } from '../../features/requests/RequestDetailsSections';
+import { useI18n } from '../../i18n/useI18n';
 import {
   getRequestById,
   getRequestSourceFromPathname,
-  getRequestSourceLabel,
   matchesRequestBranch,
   type RequestRecord,
 } from '../../services/requestService';
 import { useAuthStore } from '../../store/authStore';
 
 export function RequestDetailsPage() {
+  const { t } = useI18n();
   const { pathname } = useLocation();
   const [searchParams] = useSearchParams();
   const { requestId } = useParams();
@@ -33,10 +34,16 @@ export function RequestDetailsPage() {
   const [request, setRequest] = useState<RequestRecord | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const sourceTitle =
+    source === 'clinicVisit'
+      ? t('requests.source.clinicVisit')
+      : source === 'plannedHomeVisit'
+        ? t('requests.source.plannedHomeVisit')
+        : t('requests.source.homeVisit');
 
   const loadRequest = useCallback(async () => {
     if (!requestId) {
-      setError('Request id is missing.');
+      setError(t('requests.missingId'));
       setIsLoading(false);
       return;
     }
@@ -54,23 +61,23 @@ export function RequestDetailsPage() {
 
       if (clinicId && requestData.clinicId && requestData.clinicId !== clinicId) {
         setRequest(null);
-        setError('This request is not available for the current clinic.');
+        setError(t('requests.unavailableCurrentClinic'));
         return;
       }
 
       if (isBranchMode && clinicBranchId && !matchesRequestBranch(requestData, clinicBranchId)) {
         setRequest(null);
-        setError('This request is not available for the current branch.');
+        setError(t('requests.unavailableCurrentBranch'));
         return;
       }
 
       setRequest(requestData);
     } catch (unknownError) {
-      setError(unknownError instanceof Error ? unknownError.message : 'Unable to load request.');
+      setError(unknownError instanceof Error ? unknownError.message : t('requests.loadFailed'));
     } finally {
       setIsLoading(false);
     }
-  }, [clinicBranchId, clinicId, isBranchMode, requestId, source]);
+  }, [clinicBranchId, clinicId, isBranchMode, requestId, source, t]);
 
   useEffect(() => {
     void loadRequest();
@@ -81,27 +88,27 @@ export function RequestDetailsPage() {
   }
 
   if (isLoading) {
-    return <LoadingState label="Loading request..." />;
+    return <LoadingState label={t('requests.loadingOne')} />;
   }
 
   if (error) {
-    return <ErrorState title="Unable to load request" description={error} actionLabel="Retry" onAction={() => void loadRequest()} />;
+    return <ErrorState title={t('requests.loadFailedTitle')} description={error} actionLabel={t('common.retry')} onAction={() => void loadRequest()} />;
   }
 
   if (!request) {
-    return <ErrorState title="Request not found" description="The requested request does not exist." />;
+    return <ErrorState title={t('requests.notFoundTitle')} description={t('requests.notFoundDescription')} />;
   }
 
   return (
     <div className="space-y-6">
       <PageHeader
-        title={getRequestSourceLabel(source)}
-        description={`Read-only request details for ${request.id}.`}
+        title={sourceTitle}
+        description={t('requests.detailsDescription', { id: request.id })}
         actions={
           <Link to={`${basePath}${isBranchMode ? `?source=${source}` : ''}`}>
             <Button type="button" variant="secondary">
               <ArrowLeft className="h-4 w-4" aria-hidden="true" />
-              Back
+              {t('requests.back')}
             </Button>
           </Link>
         }

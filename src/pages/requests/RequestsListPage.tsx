@@ -10,9 +10,9 @@ import { PageHeader } from '../../components/ui/PageHeader';
 import { PaginationControls } from '../../components/ui/PaginationControls';
 import { RequestFilters } from '../../features/requests/RequestFilters';
 import { RequestTable } from '../../features/requests/RequestTable';
+import { useI18n } from '../../i18n/useI18n';
 import {
   getRequestSourceFromPathname,
-  getRequestSourceLabel,
   getRequestsByBranchId,
   getRequestsByClinicId,
   type RequestRecord,
@@ -32,6 +32,7 @@ function getPriorityRank(status?: string): number {
 }
 
 export function RequestsListPage() {
+  const { t } = useI18n();
   const { pathname } = useLocation();
   const [searchParams] = useSearchParams();
   const { clinicId, clinicBranchId, isClinicAdmin, isBranchAdmin } = useAuthStore();
@@ -52,17 +53,24 @@ export function RequestsListPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  const sourceTitle =
+    source === 'clinicVisit'
+      ? t('requests.source.clinicVisit')
+      : source === 'plannedHomeVisit'
+        ? t('requests.source.plannedHomeVisit')
+        : t('requests.source.homeVisit');
+
   const loadRequests = useCallback(async () => {
     if (!clinicId) {
       setRequests([]);
-      setError('Clinic is not available for this user.');
+      setError(t('requests.clinicUnavailable'));
       setIsLoading(false);
       return;
     }
 
     if (isBranchMode && !clinicBranchId) {
       setRequests([]);
-      setError('Clinic branch is not available for this user.');
+      setError(t('requests.branchUnavailable'));
       setIsLoading(false);
       return;
     }
@@ -77,11 +85,11 @@ export function RequestsListPage() {
           : await getRequestsByClinicId(source, clinicId),
       );
     } catch (unknownError) {
-      setError(unknownError instanceof Error ? unknownError.message : 'Unable to load requests.');
+      setError(unknownError instanceof Error ? unknownError.message : t('requests.loadFailed'));
     } finally {
       setIsLoading(false);
     }
-  }, [clinicBranchId, clinicId, isBranchMode, source]);
+  }, [clinicBranchId, clinicId, isBranchMode, source, t]);
 
   useEffect(() => {
     void loadRequests();
@@ -143,12 +151,12 @@ export function RequestsListPage() {
   return (
     <div className="space-y-6">
       <PageHeader
-        title={isBranchMode ? 'Branch requests' : getRequestSourceLabel(source)}
-        description="Review patient requests, filter the queue, and inspect request details."
+        title={isBranchMode ? t('requests.branchRequests') : sourceTitle}
+        description={t('requests.pageDescription')}
         actions={
           <Button type="button" variant="secondary" onClick={handleExportCsv} disabled={filteredRequests.length === 0}>
             <Download className="h-4 w-4" aria-hidden="true" />
-            Export CSV
+            {t('requests.export')}
           </Button>
         }
       />
@@ -165,8 +173,8 @@ export function RequestsListPage() {
           />
         </CardHeader>
         <CardContent className="space-y-4">
-          {isLoading ? <LoadingState label="Loading requests..." /> : null}
-          {error ? <ErrorState title="Unable to load requests" description={error} actionLabel="Retry" onAction={() => void loadRequests()} /> : null}
+          {isLoading ? <LoadingState label={t('requests.loadingMany')} /> : null}
+          {error ? <ErrorState title={t('requests.loadFailedTitle')} description={error} actionLabel={t('common.retry')} onAction={() => void loadRequests()} /> : null}
           {!isLoading && !error ? (
             <>
               <RequestTable

@@ -7,6 +7,7 @@ import { ErrorState } from '../../components/ui/ErrorState';
 import { LoadingState } from '../../components/ui/LoadingState';
 import { PageHeader } from '../../components/ui/PageHeader';
 import { StatCard } from '../../components/ui/StatCard';
+import { useI18n } from '../../i18n/useI18n';
 import { asClinicRecord, getClinicDashboardData, type ClinicDashboardData } from '../../services/dashboardService';
 import { useAuthStore } from '../../store/authStore';
 
@@ -22,12 +23,13 @@ function DetailItem({ label, value }: { label: string; value: string }) {
   return (
     <div>
       <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">{label}</p>
-      <p className="mt-1 text-sm text-slate-950">{value || 'Not specified'}</p>
+      <p className="mt-1 text-sm text-slate-950">{value}</p>
     </div>
   );
 }
 
 export function ClinicOverviewPage() {
+  const { t } = useI18n();
   const { clinic, clinicId } = useAuthStore();
   const [dashboard, setDashboard] = useState<ClinicDashboardData | null>(null);
   const [loading, setLoading] = useState(true);
@@ -38,7 +40,7 @@ export function ClinicOverviewPage() {
   const loadOverview = useCallback(async () => {
     if (!clinicId) {
       setDashboard(null);
-      setError('Clinic is not available for this user.');
+      setError(t('clinicOverview.clinicUnavailable'));
       setLoading(false);
       return;
     }
@@ -51,26 +53,26 @@ export function ClinicOverviewPage() {
       setDashboard(data);
     } catch (unknownError) {
       setDashboard(null);
-      setError(unknownError instanceof Error ? unknownError.message : 'Failed to load clinic overview.');
+      setError(unknownError instanceof Error ? unknownError.message : t('clinicOverview.loadFailed'));
     } finally {
       setLoading(false);
     }
-  }, [clinicId]);
+  }, [clinicId, t]);
 
   useEffect(() => {
     void loadOverview();
   }, [loadOverview]);
 
   if (loading) {
-    return <LoadingState label="Loading clinic overview..." />;
+    return <LoadingState label={t('clinicOverview.loading')} />;
   }
 
   if (error || !clinicRecord) {
     return (
       <ErrorState
-        title="Clinic overview unavailable"
-        description={error ?? 'Clinic data was not found for this account.'}
-        actionLabel="Try again"
+        title={t('clinicOverview.unavailable')}
+        description={error ?? t('clinicOverview.notFound')}
+        actionLabel={t('clinicOverview.tryAgain')}
         onAction={() => void loadOverview()}
       />
     );
@@ -80,70 +82,70 @@ export function ClinicOverviewPage() {
     <div className="space-y-6">
       <PageHeader
         title={clinicRecord.name}
-        description="Current clinic profile and operational snapshot."
+        description={t('clinicOverview.currentSnapshot')}
         actions={
           <div className="flex flex-wrap gap-2">
             <Badge tone={booleanTone(clinicRecord.isActive)}>
-              {booleanLabel(clinicRecord.isActive, 'Active', 'Inactive')}
+              {booleanLabel(clinicRecord.isActive, t('clinicOverview.active'), t('clinicOverview.inactive'))}
             </Badge>
             <Badge tone={clinicRecord.isVerified ? 'primary' : 'yellow'}>
-              {booleanLabel(clinicRecord.isVerified, 'Verified', 'Unverified')}
+              {booleanLabel(clinicRecord.isVerified, t('clinicOverview.verified'), t('clinicOverview.unverified'))}
             </Badge>
           </div>
         }
       />
 
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        <StatCard label="Branches" value={dashboard?.totalBranches ?? 0} icon={Building2} helperText="Registered clinic branches" />
-        <StatCard label="Doctors" value={dashboard?.totalDoctors ?? 0} icon={UserRound} helperText="All clinic doctors" />
-        <StatCard label="Active doctors" value={dashboard?.activeDoctors ?? 0} icon={ShieldCheck} helperText="Currently active doctor profiles" />
-        <StatCard label="Active requests" value={dashboard?.activeRequestsCount ?? 0} icon={CheckCircle2} helperText="Open requests across the clinic" />
+        <StatCard label={t('clinicOverview.branches')} value={dashboard?.totalBranches ?? 0} icon={Building2} helperText={t('clinicOverview.branchesHelper')} />
+        <StatCard label={t('clinicOverview.doctors')} value={dashboard?.totalDoctors ?? 0} icon={UserRound} helperText={t('clinicOverview.doctorsHelper')} />
+        <StatCard label={t('clinicOverview.activeDoctors')} value={dashboard?.activeDoctors ?? 0} icon={ShieldCheck} helperText={t('clinicOverview.activeDoctorsHelper')} />
+        <StatCard label={t('clinicOverview.activeRequests')} value={dashboard?.activeRequestsCount ?? 0} icon={CheckCircle2} helperText={t('clinicOverview.activeRequestsHelper')} />
       </div>
 
       <section className="grid gap-4 xl:grid-cols-2">
         <Card>
           <CardHeader>
-            <h2 className="text-base font-semibold text-slate-950">Clinic details</h2>
+            <h2 className="text-base font-semibold text-slate-950">{t('clinicOverview.clinicDetails')}</h2>
           </CardHeader>
           <CardContent className="grid gap-5 sm:grid-cols-2">
-            <DetailItem label="Description" value={clinicRecord.description || 'Not specified'} />
-            <DetailItem label="Address" value={clinicRecord.address || 'Not specified'} />
-            <DetailItem label="City / Country" value={[clinicRecord.city, clinicRecord.country].filter(Boolean).join(', ') || 'Not specified'} />
-            <DetailItem label="Working hours" value={clinicRecord.workingHours || 'Not specified'} />
+            <DetailItem label={t('clinicOverview.description')} value={clinicRecord.description || t('clinicOverview.notSpecified')} />
+            <DetailItem label={t('clinicOverview.address')} value={clinicRecord.address || t('clinicOverview.notSpecified')} />
+            <DetailItem label={t('clinicOverview.cityCountry')} value={[clinicRecord.city, clinicRecord.country].filter(Boolean).join(', ') || t('clinicOverview.notSpecified')} />
+            <DetailItem label={t('clinicOverview.workingHours')} value={clinicRecord.workingHours || t('clinicOverview.notSpecified')} />
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader>
-            <h2 className="text-base font-semibold text-slate-950">Contacts</h2>
+            <h2 className="text-base font-semibold text-slate-950">{t('clinicOverview.contacts')}</h2>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="flex items-start gap-3">
               <Phone className="mt-0.5 h-4 w-4 text-slate-400" />
               <div>
-                <p className="text-sm font-medium text-slate-950">Phone</p>
-                <p className="text-sm text-slate-600">{clinicRecord.phone || 'Not specified'}</p>
+                <p className="text-sm font-medium text-slate-950">{t('clinicOverview.phone')}</p>
+                <p className="text-sm text-slate-600">{clinicRecord.phone || t('clinicOverview.notSpecified')}</p>
               </div>
             </div>
             <div className="flex items-start gap-3">
               <Mail className="mt-0.5 h-4 w-4 text-slate-400" />
               <div>
-                <p className="text-sm font-medium text-slate-950">Email</p>
-                <p className="text-sm text-slate-600">{clinicRecord.email || 'Not specified'}</p>
+                <p className="text-sm font-medium text-slate-950">{t('clinicOverview.email')}</p>
+                <p className="text-sm text-slate-600">{clinicRecord.email || t('clinicOverview.notSpecified')}</p>
               </div>
             </div>
             <div className="flex items-start gap-3">
               <MapPin className="mt-0.5 h-4 w-4 text-slate-400" />
               <div>
-                <p className="text-sm font-medium text-slate-950">Address</p>
-                <p className="text-sm text-slate-600">{clinicRecord.address || 'Not specified'}</p>
+                <p className="text-sm font-medium text-slate-950">{t('clinicOverview.address')}</p>
+                <p className="text-sm text-slate-600">{clinicRecord.address || t('clinicOverview.notSpecified')}</p>
               </div>
             </div>
             <div className="flex items-start gap-3">
               <Clock3 className="mt-0.5 h-4 w-4 text-slate-400" />
               <div>
-                <p className="text-sm font-medium text-slate-950">Working hours</p>
-                <p className="text-sm text-slate-600">{clinicRecord.workingHours || 'Not specified'}</p>
+                <p className="text-sm font-medium text-slate-950">{t('clinicOverview.workingHours')}</p>
+                <p className="text-sm text-slate-600">{clinicRecord.workingHours || t('clinicOverview.notSpecified')}</p>
               </div>
             </div>
           </CardContent>
@@ -153,32 +155,32 @@ export function ClinicOverviewPage() {
       <section className="grid gap-4 xl:grid-cols-2">
         <Card>
           <CardHeader>
-            <h2 className="text-base font-semibold text-slate-950">Contact person</h2>
+            <h2 className="text-base font-semibold text-slate-950">{t('clinicOverview.contactPerson')}</h2>
           </CardHeader>
           <CardContent className="grid gap-5 sm:grid-cols-2">
-            <DetailItem label="Name" value={clinicRecord.contactPersonName || 'Not specified'} />
-            <DetailItem label="Phone" value={clinicRecord.contactPersonPhone || 'Not specified'} />
-            <DetailItem label="Email" value={clinicRecord.contactPersonEmail || 'Not specified'} />
-            <DetailItem label="Website" value={clinicRecord.website || 'Not specified'} />
+            <DetailItem label={t('clinicOverview.name')} value={clinicRecord.contactPersonName || t('clinicOverview.notSpecified')} />
+            <DetailItem label={t('clinicOverview.phone')} value={clinicRecord.contactPersonPhone || t('clinicOverview.notSpecified')} />
+            <DetailItem label={t('clinicOverview.email')} value={clinicRecord.contactPersonEmail || t('clinicOverview.notSpecified')} />
+            <DetailItem label={t('clinicOverview.website')} value={clinicRecord.website || t('clinicOverview.notSpecified')} />
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader>
-            <h2 className="text-base font-semibold text-slate-950">Capabilities</h2>
+            <h2 className="text-base font-semibold text-slate-950">{t('clinicOverview.capabilities')}</h2>
           </CardHeader>
           <CardContent className="flex flex-wrap gap-2">
             <Badge tone={booleanTone(clinicRecord.isProcedureRoom)}>
-              {booleanLabel(clinicRecord.isProcedureRoom, 'Procedure room available', 'No procedure room')}
+              {booleanLabel(clinicRecord.isProcedureRoom, t('clinicOverview.procedureRoomAvailable'), t('clinicOverview.noProcedureRoom'))}
             </Badge>
             <Badge tone={booleanTone(clinicRecord.isTraumaCenter)}>
-              {booleanLabel(clinicRecord.isTraumaCenter, 'Trauma center', 'No trauma center')}
+              {booleanLabel(clinicRecord.isTraumaCenter, t('clinicOverview.traumaCenter'), t('clinicOverview.noTraumaCenter'))}
             </Badge>
             <Badge tone={booleanTone(clinicRecord.isActive)}>
-              {booleanLabel(clinicRecord.isActive, 'Clinic is active', 'Clinic is inactive')}
+              {booleanLabel(clinicRecord.isActive, t('clinicOverview.clinicIsActive'), t('clinicOverview.clinicIsInactive'))}
             </Badge>
             <Badge tone={clinicRecord.isVerified ? 'primary' : 'yellow'}>
-              {booleanLabel(clinicRecord.isVerified, 'Clinic verified', 'Clinic not verified')}
+              {booleanLabel(clinicRecord.isVerified, t('clinicOverview.clinicVerified'), t('clinicOverview.clinicNotVerified'))}
             </Badge>
           </CardContent>
         </Card>
@@ -186,4 +188,3 @@ export function ClinicOverviewPage() {
     </div>
   );
 }
-

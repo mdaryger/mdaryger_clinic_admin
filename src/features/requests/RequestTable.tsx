@@ -5,6 +5,7 @@ import { Button } from '../../components/ui/Button';
 import { DataTable, type DataTableColumn } from '../../components/ui/DataTable';
 import { StatusChip } from '../../components/ui/StatusChip';
 import { UrgencyChip } from '../../components/ui/UrgencyChip';
+import { useI18n } from '../../i18n/useI18n';
 import type { RequestRecord } from '../../services/requestService';
 
 type RequestTableProps = {
@@ -56,11 +57,12 @@ function formatDate(value: unknown): string {
 }
 
 export function RequestTable({ requests, detailsBasePath, sourceQuery }: RequestTableProps) {
+  const { t } = useI18n();
   const detailsSuffix = sourceQuery ? `?source=${sourceQuery}` : '';
   const columns: DataTableColumn<RequestRecord>[] = [
     {
       key: 'patient',
-      header: 'Patient',
+      header: t('requests.patient'),
       cell: (request) => (
         <div>
           <p className="font-semibold text-slate-950">{request.patientName || '-'}</p>
@@ -70,42 +72,42 @@ export function RequestTable({ requests, detailsBasePath, sourceQuery }: Request
     },
     {
       key: 'phone',
-      header: 'Phone',
+      header: t('requests.phone'),
       cell: (request) => request.patientPhone || '-',
     },
     {
       key: 'status',
-      header: 'Status',
+      header: t('requests.statusLabel'),
       cell: (request) => <StatusChip status={request.status} />,
     },
     {
       key: 'urgency',
-      header: 'Urgency',
+      header: t('requests.urgencyLabel'),
       cell: (request) => <UrgencyChip urgency={request.urgency} />,
     },
     {
       key: 'doctor',
-      header: 'Doctor',
+      header: t('requests.doctor'),
       cell: (request) => request.doctorName || request.selectedDoctorId || request.doctorId || '-',
     },
     {
       key: 'cost',
-      header: 'Cost',
+      header: t('requests.cost'),
       cell: (request) => request.cost ?? request.finalPrice ?? request.estimatedPrice ?? '-',
     },
     {
       key: 'createdAt',
-      header: 'Created',
+      header: t('requests.created'),
       cell: (request) => formatDate(request.createdAt),
     },
     {
       key: 'actions',
-      header: 'Actions',
+      header: t('requests.actions'),
       className: 'text-right',
       cell: (request) => (
         <div className="flex justify-end gap-2">
           <Link to={`${detailsBasePath}/${request.id}${detailsSuffix}`}>
-            <Button type="button" variant="secondary" size="icon" aria-label="Open request details">
+            <Button type="button" variant="secondary" size="icon" aria-label={t('requests.openRequest')}>
               <Eye className="h-4 w-4" aria-hidden="true" />
             </Button>
           </Link>
@@ -119,8 +121,8 @@ export function RequestTable({ requests, detailsBasePath, sourceQuery }: Request
       columns={columns}
       data={requests}
       getRowKey={(request) => request.id}
-      emptyTitle="No requests found"
-      emptyDescription="Requests will appear here when they match the current source and filters."
+      emptyTitle={t('requests.emptyTitle')}
+      emptyDescription={t('requests.emptyDescription')}
     />
   );
 }

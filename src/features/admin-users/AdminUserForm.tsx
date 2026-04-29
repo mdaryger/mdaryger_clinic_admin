@@ -5,6 +5,7 @@ import { useForm } from 'react-hook-form';
 import { Button } from '../../components/ui/Button';
 import { Input } from '../../components/ui/Input';
 import { Select } from '../../components/ui/Select';
+import { useI18n } from '../../i18n/useI18n';
 import { adminUserSchema, type AdminUserSchemaValues } from '../../lib/validation/adminUserSchema';
 import { getBranchesByClinicId, type ClinicBranch } from '../../services/branchService';
 import type { AdminUserRole, CreateAdminUserData } from '../../services/adminUserService';
@@ -24,6 +25,7 @@ export function AdminUserForm({
   onSubmit,
   onCancel,
 }: AdminUserFormProps) {
+  const { t } = useI18n();
   const [branches, setBranches] = useState<ClinicBranch[]>([]);
   const [branchesLoading, setBranchesLoading] = useState(true);
   const {
@@ -95,22 +97,22 @@ export function AdminUserForm({
   return (
     <form className="space-y-6" onSubmit={handleSubmit(submitForm)}>
       <div className="grid gap-4 sm:grid-cols-2">
-        <Select label="Role" error={errors.role?.message} {...register('role')}>
-          <option value="clinicAdmin">Clinic admin</option>
-          <option value="clinicBranchAdmin">Clinic branch admin</option>
+        <Select label={t('adminUsers.role')} error={errors.role?.message} {...register('role')}>
+          <option value="clinicAdmin">{t('adminUsers.clinicAdmin')}</option>
+          <option value="clinicBranchAdmin">{t('adminUsers.branchAdmin')}</option>
         </Select>
         <Select
-          label="Branch"
+          label={t('adminUsers.branch')}
           error={errors.clinicBranchId?.message}
           disabled={selectedRole !== 'clinicBranchAdmin' || branchesLoading}
           {...register('clinicBranchId')}
         >
           <option value="">
             {selectedRole !== 'clinicBranchAdmin'
-              ? 'Branch not required'
+              ? t('adminUsers.branchNotRequired')
               : branchesLoading
-                ? 'Loading branches...'
-                : 'Select branch'}
+                ? t('adminUsers.loadingBranches')
+                : t('adminUsers.selectBranch')}
           </option>
           {branches.map((branch) => (
             <option key={branch.id} value={branch.id}>
@@ -118,22 +120,22 @@ export function AdminUserForm({
             </option>
           ))}
         </Select>
-        <Input label="First name" error={errors.firstName?.message} {...register('firstName')} />
-        <Input label="Last name" error={errors.lastName?.message} {...register('lastName')} />
-        <Input label="Email" type="email" error={errors.email?.message} {...register('email')} />
-        <Input label="Phone" error={errors.phone?.message} {...register('phone')} />
-        <Input label="Password" type="password" error={errors.password?.message} {...register('password')} />
-        <Input label="Confirm password" type="password" error={errors.confirmPassword?.message} {...register('confirmPassword')} />
+        <Input label={t('adminUsers.firstName')} error={errors.firstName?.message} {...register('firstName')} />
+        <Input label={t('adminUsers.lastName')} error={errors.lastName?.message} {...register('lastName')} />
+        <Input label={t('adminUsers.email')} type="email" error={errors.email?.message} {...register('email')} />
+        <Input label={t('adminUsers.phone')} error={errors.phone?.message} {...register('phone')} />
+        <Input label={t('adminUsers.password')} type="password" error={errors.password?.message} {...register('password')} />
+        <Input label={t('adminUsers.confirmPassword')} type="password" error={errors.confirmPassword?.message} {...register('confirmPassword')} />
       </div>
 
       <div className="flex justify-end gap-2">
         {onCancel ? (
           <Button type="button" variant="secondary" onClick={onCancel}>
-            Cancel
+            {t('common.cancel')}
           </Button>
         ) : null}
         <Button type="submit" isLoading={isSubmitting}>
-          Create admin user
+          {t('adminUsers.createAdminUser')}
         </Button>
       </div>
     </form>

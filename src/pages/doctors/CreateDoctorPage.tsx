@@ -6,6 +6,7 @@ import { Button } from '../../components/ui/Button';
 import { Card, CardContent, CardHeader } from '../../components/ui/Card';
 import { PageHeader } from '../../components/ui/PageHeader';
 import { DoctorForm } from '../../features/doctors/DoctorForm';
+import { useI18n } from '../../i18n/useI18n';
 import { createDoctor, type DoctorFormData, type DoctorFiles } from '../../services/doctorService';
 import { useAuthStore } from '../../store/authStore';
 import { useToastStore } from '../../store/toastStore';
@@ -21,6 +22,7 @@ function getDoctorBasePath(mode: DoctorMode): string {
 }
 
 export function CreateDoctorPage() {
+  const { t } = useI18n();
   const { pathname } = useLocation();
   const navigate = useNavigate();
   const mode = getDoctorMode(pathname);
@@ -51,11 +53,11 @@ export function CreateDoctorPage() {
         payload.files,
         { password: payload.auth?.password ?? '' },
       );
-      showToast({ type: 'success', title: 'Doctor created' });
+      showToast({ type: 'success', title: t('doctors.createSuccess') });
       navigate(`${basePath}/${doctor.id}`);
     } catch (unknownError) {
-      const message = unknownError instanceof Error ? unknownError.message : 'Unable to create doctor.';
-      showToast({ type: 'error', title: 'Create failed', description: message });
+      const message = unknownError instanceof Error ? unknownError.message : t('doctors.createFailed');
+      showToast({ type: 'error', title: t('doctors.createFailed'), description: message });
     } finally {
       setIsSubmitting(false);
     }
@@ -64,13 +66,13 @@ export function CreateDoctorPage() {
   return (
     <div className="space-y-6">
       <PageHeader
-        title="Create doctor"
-        description="Set up a doctor profile, account, and weekly schedule."
+        title={t('doctors.createTitle')}
+        description={t('doctors.createDescription')}
         actions={
           <Link to={basePath}>
             <Button type="button" variant="secondary">
               <ArrowLeft className="h-4 w-4" aria-hidden="true" />
-              Back
+              {t('doctors.back')}
             </Button>
           </Link>
         }
@@ -78,7 +80,7 @@ export function CreateDoctorPage() {
 
       <Card>
         <CardHeader>
-          <h2 className="text-lg font-semibold text-slate-950">Doctor profile</h2>
+          <h2 className="text-lg font-semibold text-slate-950">{t('doctors.profileTitle')}</h2>
         </CardHeader>
         <CardContent>
           <DoctorForm
