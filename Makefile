@@ -1,6 +1,10 @@
 SHELL := /bin/sh
 
-.PHONY: help install dev prod lint build build-dev start preview deploy clean
+FIREBASE_PROJECT := medicall-prod-35394
+FIREBASE_HOSTING_SITE := clinics-mdaryger
+FIREBASE := npx firebase
+
+.PHONY: help install dev prod lint build build-dev start preview deploy deploy-hosting clean
 
 help:
 	@printf "\nClinics Admin commands:\n\n"
@@ -12,7 +16,8 @@ help:
 	@printf "  make build-dev Create a build with dev Firebase\n"
 	@printf "  make start     Run Vite preview server locally\n"
 	@printf "  make preview   Run lint + build for a production check\n"
-	@printf "  make deploy    Placeholder: deploy the built app to your hosting target\n"
+	@printf "  make deploy    Build in prod mode and deploy to Firebase Hosting\n"
+	@printf "  make deploy-hosting Deploy the existing dist/ build to Firebase Hosting\n"
 	@printf "  make clean     Remove generated build output\n\n"
 
 install:
@@ -38,8 +43,11 @@ start:
 
 preview: lint build
 
-deploy:
-	@printf "Deploy the contents of dist/ to your hosting target after a successful build.\n"
+deploy: build deploy-hosting
+
+deploy-hosting:
+	$(FIREBASE) use $(FIREBASE_PROJECT)
+	$(FIREBASE) deploy --only hosting:$(FIREBASE_HOSTING_SITE)
 
 clean:
 	rm -rf dist

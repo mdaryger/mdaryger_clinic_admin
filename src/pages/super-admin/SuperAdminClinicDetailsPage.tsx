@@ -10,6 +10,7 @@ import { LoadingState } from '../../components/ui/LoadingState';
 import { PageHeader } from '../../components/ui/PageHeader';
 import { ClinicCard } from '../../features/clinics/ClinicCard';
 import { ClinicForm } from '../../features/clinics/ClinicForm';
+import { useI18n } from '../../i18n/useI18n';
 import { getClinicById, updateClinic } from '../../services/clinicService';
 import { useAuthStore } from '../../store/authStore';
 import { useToastStore } from '../../store/toastStore';
@@ -23,6 +24,7 @@ type FormPayload = {
 
 export function SuperAdminClinicDetailsPage() {
   const { clinicId } = useParams();
+  const { t } = useI18n();
   const isSuperAdmin = useAuthStore((state) => state.isSuperAdmin);
   const showToast = useToastStore((state) => state.showToast);
   const [clinic, setClinic] = useState<Clinic | null>(null);
@@ -33,7 +35,7 @@ export function SuperAdminClinicDetailsPage() {
 
   const loadClinic = useCallback(async () => {
     if (!clinicId) {
-      setError('Clinic id is missing.');
+      setError(t('superAdmin.clinicNotFoundDescription'));
       setIsLoading(false);
       return;
     }
@@ -44,12 +46,12 @@ export function SuperAdminClinicDetailsPage() {
     try {
       setClinic(await getClinicById(clinicId));
     } catch (loadError) {
-      const message = loadError instanceof Error ? loadError.message : 'Unable to load clinic.';
+      const message = loadError instanceof Error ? loadError.message : t('superAdmin.loadClinicFailed');
       setError(message);
     } finally {
       setIsLoading(false);
     }
-  }, [clinicId]);
+  }, [clinicId, t]);
 
   useEffect(() => {
     void loadClinic();
@@ -68,27 +70,27 @@ export function SuperAdminClinicDetailsPage() {
 
     try {
       await updateClinic(clinic.id, data, logoFile, coverFile);
-      showToast({ type: 'success', title: 'Clinic updated' });
+      showToast({ type: 'success', title: t('superAdmin.clinicUpdated') });
       setIsEditing(false);
       await loadClinic();
     } catch (submitError) {
-      const message = submitError instanceof Error ? submitError.message : 'Unable to update clinic.';
-      showToast({ type: 'error', title: 'Update failed', description: message });
+      const message = submitError instanceof Error ? submitError.message : t('superAdmin.updateFailed');
+      showToast({ type: 'error', title: t('superAdmin.updateFailed'), description: message });
     } finally {
       setIsSubmitting(false);
     }
   };
 
   if (isLoading) {
-    return <LoadingState label="Loading clinic..." />;
+    return <LoadingState label={t('superAdmin.loadingClinic')} />;
   }
 
   if (error) {
-    return <ErrorState title="Unable to load clinic" description={error} actionLabel="Retry" onAction={() => void loadClinic()} />;
+    return <ErrorState title={t('superAdmin.loadClinicFailed')} description={error} actionLabel={t('common.retry')} onAction={() => void loadClinic()} />;
   }
 
   if (!clinic) {
-    return <ErrorState title="Clinic not found" description="The requested clinic does not exist." />;
+    return <ErrorState title={t('superAdmin.clinicNotFound')} description={t('superAdmin.clinicNotFoundDescription')} />;
   }
 
   return (
@@ -101,12 +103,12 @@ export function SuperAdminClinicDetailsPage() {
             <Link to="/super-admin">
               <Button type="button" variant="secondary">
                 <ArrowLeft className="h-4 w-4" aria-hidden="true" />
-                Back
+                {t('superAdmin.back')}
               </Button>
             </Link>
             <Button type="button" onClick={() => setIsEditing((value) => !value)}>
               <Edit className="h-4 w-4" aria-hidden="true" />
-              Edit
+              {t('superAdmin.edit')}
             </Button>
           </>
         }
@@ -115,7 +117,7 @@ export function SuperAdminClinicDetailsPage() {
       {isEditing ? (
         <Card className="mb-6">
           <CardHeader>
-            <h2 className="text-lg font-semibold text-slate-950">Edit clinic</h2>
+            <h2 className="text-lg font-semibold text-slate-950">{t('superAdmin.editClinicTitle')}</h2>
           </CardHeader>
           <CardContent>
             <ClinicForm clinic={clinic} isSubmitting={isSubmitting} onSubmit={handleSubmit} onCancel={() => setIsEditing(false)} />
@@ -128,26 +130,26 @@ export function SuperAdminClinicDetailsPage() {
         <Card>
           <CardHeader>
             <div className="flex flex-wrap gap-2">
-              <Badge tone={clinic.isActive ? 'green' : 'slate'}>{clinic.isActive ? 'Active' : 'Inactive'}</Badge>
-              <Badge tone={clinic.isVerified ? 'primary' : 'yellow'}>{clinic.isVerified ? 'Verified' : 'Unverified'}</Badge>
-              {clinic.isProcedureRoom ? <Badge tone="blue">Procedure room</Badge> : null}
-              {clinic.isTraumaCenter ? <Badge tone="red">Trauma center</Badge> : null}
+              <Badge tone={clinic.isActive ? 'green' : 'slate'}>{clinic.isActive ? t('superAdmin.active') : t('superAdmin.inactive')}</Badge>
+              <Badge tone={clinic.isVerified ? 'primary' : 'yellow'}>{clinic.isVerified ? t('superAdmin.verified') : t('superAdmin.unverified')}</Badge>
+              {clinic.isProcedureRoom ? <Badge tone="blue">{t('superAdmin.procedureRoom')}</Badge> : null}
+              {clinic.isTraumaCenter ? <Badge tone="red">{t('superAdmin.traumaCenter')}</Badge> : null}
             </div>
           </CardHeader>
           <CardContent>
             <dl className="grid gap-4 sm:grid-cols-2">
               {[
-                ['Address', clinic.address],
-                ['Phone', clinic.phone],
-                ['Email', clinic.email],
-                ['Website', clinic.website],
-                ['Working hours', clinic.workingHours],
-                ['Procedure room price', clinic.procedureRoomPrice ?? '-'],
-                ['Contact person', clinic.contactPersonName],
-                ['Contact phone', clinic.contactPersonPhone],
-                ['Contact email', clinic.contactPersonEmail],
-                ['Latitude', clinic.location.latitude ?? '-'],
-                ['Longitude', clinic.location.longitude ?? '-'],
+                [t('superAdmin.address'), clinic.address],
+                [t('superAdmin.phone'), clinic.phone],
+                [t('superAdmin.email'), clinic.email],
+                [t('superAdmin.website'), clinic.website],
+                [t('superAdmin.workingHours'), clinic.workingHours],
+                [t('superAdmin.procedureRoomPrice'), clinic.procedureRoomPrice ?? '-'],
+                [t('superAdmin.contactName'), clinic.contactPersonName],
+                [t('superAdmin.contactPhone'), clinic.contactPersonPhone],
+                [t('superAdmin.contactEmail'), clinic.contactPersonEmail],
+                [t('superAdmin.latitude'), clinic.location.latitude ?? '-'],
+                [t('superAdmin.longitude'), clinic.location.longitude ?? '-'],
               ].map(([label, value]) => (
                 <div key={label}>
                   <dt className="text-xs font-semibold uppercase text-slate-500">{label}</dt>
@@ -155,7 +157,7 @@ export function SuperAdminClinicDetailsPage() {
                 </div>
               ))}
               <div className="sm:col-span-2">
-                <dt className="text-xs font-semibold uppercase text-slate-500">Description</dt>
+                <dt className="text-xs font-semibold uppercase text-slate-500">{t('superAdmin.description')}</dt>
                 <dd className="mt-1 text-sm leading-6 text-slate-900">{clinic.description || '-'}</dd>
               </div>
             </dl>

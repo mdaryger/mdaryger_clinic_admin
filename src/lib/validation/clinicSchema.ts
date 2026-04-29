@@ -8,38 +8,40 @@ const nullableNumber = z.preprocess((value) => {
   return value;
 }, z.coerce.number().nullable());
 
-export const clinicSchema = z
-  .object({
-    name: z.string().min(1, 'Name is required'),
-    country: z.string().optional(),
-    countryId: z.string().min(1, 'Country ID is required'),
-    city: z.string().optional(),
-    cityId: z.string().min(1, 'City ID is required'),
-    address: z.string().min(1, 'Address is required'),
-    phone: z.string().min(1, 'Phone is required'),
-    email: z.string().email('Enter a valid email').or(z.literal('')),
-    website: z.string().url('Enter a valid URL').or(z.literal('')),
-    workingHours: z.string().optional(),
-    description: z.string().optional(),
-    contactPersonName: z.string().optional(),
-    contactPersonPhone: z.string().optional(),
-    contactPersonEmail: z.string().email('Enter a valid email').or(z.literal('')),
-    isActive: z.boolean(),
-    isVerified: z.boolean(),
-    isProcedureRoom: z.boolean(),
-    procedureRoomPrice: nullableNumber,
-    isTraumaCenter: z.boolean(),
-    latitude: nullableNumber,
-    longitude: nullableNumber,
-  })
-  .superRefine((values, context) => {
-    if (values.isProcedureRoom && (values.procedureRoomPrice === null || Number.isNaN(values.procedureRoomPrice))) {
-      context.addIssue({
-        code: z.ZodIssueCode.custom,
-        path: ['procedureRoomPrice'],
-        message: 'Procedure room price is required',
-      });
-    }
-  });
+export function createClinicSchema(t: (key: string) => string) {
+  return z
+    .object({
+      name: z.string().min(1, t('validation.requiredName')),
+      country: z.string().optional(),
+      countryId: z.string().min(1, t('validation.requiredCountry')),
+      city: z.string().optional(),
+      cityId: z.string().min(1, t('validation.requiredCity')),
+      address: z.string().min(1, t('validation.requiredAddress')),
+      phone: z.string().min(1, t('validation.requiredPhone')),
+      email: z.string().email(t('validation.validEmail')).or(z.literal('')),
+      website: z.string().url(t('validation.validUrl')).or(z.literal('')),
+      workingHours: z.string().optional(),
+      description: z.string().optional(),
+      contactPersonName: z.string().optional(),
+      contactPersonPhone: z.string().optional(),
+      contactPersonEmail: z.string().email(t('validation.validEmail')).or(z.literal('')),
+      isActive: z.boolean(),
+      isVerified: z.boolean(),
+      isProcedureRoom: z.boolean(),
+      procedureRoomPrice: nullableNumber,
+      isTraumaCenter: z.boolean(),
+      latitude: nullableNumber,
+      longitude: nullableNumber,
+    })
+    .superRefine((values, context) => {
+      if (values.isProcedureRoom && (values.procedureRoomPrice === null || Number.isNaN(values.procedureRoomPrice))) {
+        context.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['procedureRoomPrice'],
+          message: t('validation.requiredProcedureRoomPrice'),
+        });
+      }
+    });
+}
 
-export type ClinicSchemaValues = z.infer<typeof clinicSchema>;
+export type ClinicSchemaValues = z.infer<ReturnType<typeof createClinicSchema>>;

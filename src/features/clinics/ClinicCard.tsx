@@ -4,6 +4,7 @@ import { Link } from 'react-router-dom';
 import { Badge } from '../../components/ui/Badge';
 import { Button } from '../../components/ui/Button';
 import { Card, CardContent } from '../../components/ui/Card';
+import { useI18n } from '../../i18n/useI18n';
 import type { Clinic } from '../../types/clinic';
 
 type ClinicCardProps = {
@@ -13,6 +14,8 @@ type ClinicCardProps = {
 };
 
 export function ClinicCard({ clinic, onEdit, onDelete }: ClinicCardProps) {
+  const { t } = useI18n();
+
   return (
     <Card className="overflow-hidden">
       <div className="h-32 bg-slate-100">
@@ -43,8 +46,8 @@ export function ClinicCard({ clinic, onEdit, onDelete }: ClinicCardProps) {
         </div>
 
         <div className="mt-4 flex flex-wrap gap-2">
-          <Badge tone={clinic.isActive ? 'green' : 'slate'}>{clinic.isActive ? 'Active' : 'Inactive'}</Badge>
-          <Badge tone={clinic.isVerified ? 'primary' : 'yellow'}>{clinic.isVerified ? 'Verified' : 'Unverified'}</Badge>
+          <Badge tone={clinic.isActive ? 'green' : 'slate'}>{clinic.isActive ? t('superAdmin.active') : t('superAdmin.inactive')}</Badge>
+          <Badge tone={clinic.isVerified ? 'primary' : 'yellow'}>{clinic.isVerified ? t('superAdmin.verified') : t('superAdmin.unverified')}</Badge>
         </div>
 
         <div className="mt-4 space-y-2 text-sm text-slate-600">
@@ -65,17 +68,17 @@ export function ClinicCard({ clinic, onEdit, onDelete }: ClinicCardProps) {
         <div className="mt-5 flex flex-wrap gap-2">
           <Link to={`/super-admin/clinic/${clinic.id}`}>
             <Button type="button" variant="secondary" size="sm">
-              Details
+              {t('superAdmin.details')}
             </Button>
           </Link>
           {onEdit ? (
             <Button type="button" variant="secondary" size="sm" onClick={() => onEdit(clinic)}>
-              Edit
+              {t('superAdmin.edit')}
             </Button>
           ) : null}
           {onDelete ? (
             <Button type="button" variant="danger" size="sm" onClick={() => onDelete(clinic)}>
-              Delete
+              {t('superAdmin.delete')}
             </Button>
           ) : null}
         </div>

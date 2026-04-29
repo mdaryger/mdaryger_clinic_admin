@@ -1,6 +1,6 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Upload } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useForm } from 'react-hook-form';
 
 import { Button } from '../../components/ui/Button';
@@ -10,7 +10,8 @@ import { Select } from '../../components/ui/Select';
 import { Textarea } from '../../components/ui/Textarea';
 import { useCities } from '../../hooks/useCities';
 import { useCountries } from '../../hooks/useCountries';
-import { clinicSchema, type ClinicSchemaValues } from '../../lib/validation/clinicSchema';
+import { useI18n } from '../../i18n/useI18n';
+import { createClinicSchema, type ClinicSchemaValues } from '../../lib/validation/clinicSchema';
 import type { Clinic, ClinicFormData } from '../../types/clinic';
 
 type ClinicFormSubmitData = {
@@ -53,8 +54,10 @@ function getDefaultValues(clinic?: Clinic | null): ClinicSchemaValues {
 }
 
 export function ClinicForm({ clinic, isSubmitting = false, onSubmit, onCancel }: ClinicFormProps) {
+  const { t } = useI18n();
   const [logoFile, setLogoFile] = useState<File | undefined>();
   const [coverFile, setCoverFile] = useState<File | undefined>();
+  const clinicSchema = useMemo(() => createClinicSchema(t), [t]);
   const {
     register,
     handleSubmit,
@@ -153,16 +156,16 @@ export function ClinicForm({ clinic, isSubmitting = false, onSubmit, onCancel }:
       <input type="hidden" {...register('cityId')} />
 
       <div className="grid gap-4 sm:grid-cols-2">
-        <Input label="Name" error={errors.name?.message} {...register('name')} />
-        <Input label="Phone" error={errors.phone?.message} {...register('phone')} />
+        <Input label={t('superAdmin.name')} error={errors.name?.message} {...register('name')} />
+        <Input label={t('superAdmin.phone')} error={errors.phone?.message} {...register('phone')} />
         <Select
-          label="Country"
+          label={t('superAdmin.country')}
           error={errors.countryId?.message}
           value={selectedCountryId}
           onChange={(event) => handleCountryChange(event.target.value)}
           disabled={countriesLoading}
         >
-          <option value="">{countriesLoading ? 'Loading countries...' : 'Select country'}</option>
+          <option value="">{countriesLoading ? t('superAdmin.loadingCountries') : t('superAdmin.selectCountry')}</option>
           {countries.map((country) => (
             <option key={country.id} value={country.id}>
               {country.name}
@@ -170,14 +173,14 @@ export function ClinicForm({ clinic, isSubmitting = false, onSubmit, onCancel }:
           ))}
         </Select>
         <Select
-          label="City"
+          label={t('superAdmin.city')}
           error={errors.cityId?.message}
           value={selectedCityId}
           onChange={(event) => handleCityChange(event.target.value)}
           disabled={!selectedCountryId || citiesLoading}
         >
           <option value="">
-            {!selectedCountryId ? 'Select country first' : citiesLoading ? 'Loading cities...' : 'Select city'}
+            {!selectedCountryId ? t('superAdmin.selectCountryFirst') : citiesLoading ? t('superAdmin.loadingCities') : t('superAdmin.selectCity')}
           </option>
           {cities.map((city) => (
             <option key={city.id} value={city.id}>
@@ -185,28 +188,28 @@ export function ClinicForm({ clinic, isSubmitting = false, onSubmit, onCancel }:
             </option>
           ))}
         </Select>
-        <Input className="sm:col-span-2" label="Address" error={errors.address?.message} {...register('address')} />
-        <Input label="Email" type="email" error={errors.email?.message} {...register('email')} />
-        <Input label="Website" type="url" placeholder="https://example.com" error={errors.website?.message} {...register('website')} />
-        <Input label="Working hours" placeholder="Mon-Fri 09:00-18:00" error={errors.workingHours?.message} {...register('workingHours')} />
-        <Input label="Procedure room price" type="number" step="0.01" error={errors.procedureRoomPrice?.message} {...register('procedureRoomPrice')} />
-        <Input label="Latitude" type="number" step="any" error={errors.latitude?.message} {...register('latitude')} />
-        <Input label="Longitude" type="number" step="any" error={errors.longitude?.message} {...register('longitude')} />
+        <Input className="sm:col-span-2" label={t('superAdmin.address')} error={errors.address?.message} {...register('address')} />
+        <Input label={t('superAdmin.email')} type="email" error={errors.email?.message} {...register('email')} />
+        <Input label={t('superAdmin.website')} type="url" placeholder={t('superAdmin.websitePlaceholder')} error={errors.website?.message} {...register('website')} />
+        <Input label={t('superAdmin.workingHours')} placeholder={t('superAdmin.workingHoursPlaceholder')} error={errors.workingHours?.message} {...register('workingHours')} />
+        <Input label={t('superAdmin.procedureRoomPrice')} type="number" step="0.01" error={errors.procedureRoomPrice?.message} {...register('procedureRoomPrice')} />
+        <Input label={t('superAdmin.latitude')} type="number" step="any" error={errors.latitude?.message} {...register('latitude')} />
+        <Input label={t('superAdmin.longitude')} type="number" step="any" error={errors.longitude?.message} {...register('longitude')} />
       </div>
 
-      <Textarea label="Description" error={errors.description?.message} {...register('description')} />
+      <Textarea label={t('superAdmin.description')} error={errors.description?.message} {...register('description')} />
 
       <div className="grid gap-4 sm:grid-cols-3">
-        <Input label="Contact name" error={errors.contactPersonName?.message} {...register('contactPersonName')} />
-        <Input label="Contact phone" error={errors.contactPersonPhone?.message} {...register('contactPersonPhone')} />
-        <Input label="Contact email" type="email" error={errors.contactPersonEmail?.message} {...register('contactPersonEmail')} />
+        <Input label={t('superAdmin.contactName')} error={errors.contactPersonName?.message} {...register('contactPersonName')} />
+        <Input label={t('superAdmin.contactPhone')} error={errors.contactPersonPhone?.message} {...register('contactPersonPhone')} />
+        <Input label={t('superAdmin.contactEmail')} type="email" error={errors.contactPersonEmail?.message} {...register('contactPersonEmail')} />
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2">
         <label className="block rounded-lg border border-dashed border-slate-300 bg-slate-50 p-4">
           <span className="flex items-center gap-2 text-sm font-medium text-slate-700">
             <Upload className="h-4 w-4 text-primary" aria-hidden="true" />
-            Logo upload
+            {t('superAdmin.logoUpload')}
           </span>
           {clinic?.logoUrl ? (
             <div className="mt-3">
@@ -214,12 +217,12 @@ export function ClinicForm({ clinic, isSubmitting = false, onSubmit, onCancel }:
             </div>
           ) : null}
           <input className="mt-3 text-sm" type="file" accept="image/png,image/jpeg,image/webp" onChange={(event) => setLogoFile(event.target.files?.[0])} />
-          {logoFile ? <p className="mt-2 text-sm text-slate-500">Selected: {logoFile.name}</p> : null}
+          {logoFile ? <p className="mt-2 text-sm text-slate-500">{t('superAdmin.selectedFile', { name: logoFile.name })}</p> : null}
         </label>
         <label className="block rounded-lg border border-dashed border-slate-300 bg-slate-50 p-4">
           <span className="flex items-center gap-2 text-sm font-medium text-slate-700">
             <Upload className="h-4 w-4 text-primary" aria-hidden="true" />
-            Cover upload
+            {t('superAdmin.coverUpload')}
           </span>
           {clinic?.coverImageUrl ? (
             <div className="mt-3">
@@ -227,25 +230,25 @@ export function ClinicForm({ clinic, isSubmitting = false, onSubmit, onCancel }:
             </div>
           ) : null}
           <input className="mt-3 text-sm" type="file" accept="image/png,image/jpeg,image/webp" onChange={(event) => setCoverFile(event.target.files?.[0])} />
-          {coverFile ? <p className="mt-2 text-sm text-slate-500">Selected: {coverFile.name}</p> : null}
+          {coverFile ? <p className="mt-2 text-sm text-slate-500">{t('superAdmin.selectedFile', { name: coverFile.name })}</p> : null}
         </label>
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2">
-        <Checkbox label="Active" {...register('isActive')} />
-        <Checkbox label="Verified" {...register('isVerified')} />
-        <Checkbox label="Procedure room" {...register('isProcedureRoom')} />
-        <Checkbox label="Trauma center" {...register('isTraumaCenter')} />
+        <Checkbox label={t('superAdmin.active')} {...register('isActive')} />
+        <Checkbox label={t('superAdmin.verified')} {...register('isVerified')} />
+        <Checkbox label={t('superAdmin.procedureRoom')} {...register('isProcedureRoom')} />
+        <Checkbox label={t('superAdmin.traumaCenter')} {...register('isTraumaCenter')} />
       </div>
 
       <div className="flex justify-end gap-2">
         {onCancel ? (
           <Button type="button" variant="secondary" onClick={onCancel}>
-            Cancel
+            {t('superAdmin.cancel')}
           </Button>
         ) : null}
         <Button type="submit" isLoading={isSubmitting}>
-          {clinic ? 'Update clinic' : 'Create clinic'}
+          {clinic ? t('superAdmin.updateClinicAction') : t('superAdmin.createClinicAction')}
         </Button>
       </div>
     </form>
