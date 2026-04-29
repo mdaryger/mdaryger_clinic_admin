@@ -28,6 +28,13 @@ export function AdminUserForm({
   const { t } = useI18n();
   const [branches, setBranches] = useState<ClinicBranch[]>([]);
   const [branchesLoading, setBranchesLoading] = useState(true);
+  const clinicName =
+    clinic && typeof clinic.name === 'string' && clinic.name.trim().length > 0
+      ? clinic.name.trim()
+      : '';
+  const mainClinicLabel = clinicName
+    ? `${t('adminUsers.mainClinic')} - ${clinicName}`
+    : t('adminUsers.mainClinic');
   const {
     register,
     handleSubmit,
@@ -104,16 +111,27 @@ export function AdminUserForm({
         <Select
           label={t('adminUsers.branch')}
           error={errors.clinicBranchId?.message}
-          disabled={selectedRole !== 'clinicBranchAdmin' || branchesLoading}
-          {...register('clinicBranchId')}
+          disabled={selectedRole !== 'clinicBranchAdmin' || branchesLoading || branches.length === 0}
+          value={selectedRole === 'clinicBranchAdmin' ? watch('clinicBranchId') : '__main_clinic__'}
+          onChange={(event) => setValue('clinicBranchId', event.target.value, { shouldValidate: true })}
         >
-          <option value="">
-            {selectedRole !== 'clinicBranchAdmin'
-              ? t('adminUsers.branchNotRequired')
-              : branchesLoading
-                ? t('adminUsers.loadingBranches')
-                : t('adminUsers.selectBranch')}
-          </option>
+          {selectedRole !== 'clinicBranchAdmin' ? (
+            <option value="__main_clinic__">{mainClinicLabel}</option>
+          ) : null}
+          {selectedRole === 'clinicBranchAdmin' ? (
+            <>
+              <option value="" disabled>
+                {branchesLoading
+                  ? t('adminUsers.loadingBranches')
+                  : branches.length === 0
+                    ? t('adminUsers.noBranchesAvailable')
+                    : t('adminUsers.selectBranch')}
+              </option>
+              <option value="" disabled>
+                {mainClinicLabel}
+              </option>
+            </>
+          ) : null}
           {branches.map((branch) => (
             <option key={branch.id} value={branch.id}>
               {branch.name}

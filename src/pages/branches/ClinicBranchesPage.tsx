@@ -10,6 +10,7 @@ import { PageHeader } from '../../components/ui/PageHeader';
 import { SearchInput } from '../../components/ui/SearchInput';
 import { Select } from '../../components/ui/Select';
 import { BranchTable } from '../../features/branches/BranchTable';
+import type { BranchListItem } from '../../features/branches/BranchTable';
 import { useI18n } from '../../i18n/useI18n';
 import {
   getBranchesByClinicId,
@@ -24,7 +25,7 @@ import { matchesSearchQuery } from '../../utils/search';
 
 export function ClinicBranchesPage() {
   const { t } = useI18n();
-  const { clinicId, isClinicAdmin } = useAuthStore();
+  const { clinic, clinicId, isClinicAdmin } = useAuthStore();
   const showToast = useToastStore((state) => state.showToast);
   const [branches, setBranches] = useState<ClinicBranch[]>([]);
   const [search, setSearch] = useState('');
@@ -59,12 +60,52 @@ export function ClinicBranchesPage() {
     void loadBranches();
   }, [loadBranches]);
 
+  const branchItems = useMemo<BranchListItem[]>(() => {
+    const clinicRecord = clinic as Record<string, unknown> | null;
+    const mainClinicName = typeof clinicRecord?.name === 'string' ? clinicRecord.name : '';
+
+    if (!clinicId || !mainClinicName) {
+      return branches;
+    }
+
+    const mainClinicItem: BranchListItem = {
+      id: `main-clinic-${clinicId}`,
+      clinicId,
+      name: mainClinicName,
+      phone: typeof clinicRecord?.phone === 'string' ? clinicRecord.phone : '',
+      address: typeof clinicRecord?.address === 'string' ? clinicRecord.address : '',
+      city: typeof clinicRecord?.city === 'string' ? clinicRecord.city : '',
+      cityId: typeof clinicRecord?.cityId === 'string' ? clinicRecord.cityId : '',
+      country: typeof clinicRecord?.country === 'string' ? clinicRecord.country : '',
+      countryId: typeof clinicRecord?.countryId === 'string' ? clinicRecord.countryId : '',
+      description: typeof clinicRecord?.description === 'string' ? clinicRecord.description : '',
+      district: '',
+      email: typeof clinicRecord?.email === 'string' ? clinicRecord.email : '',
+      website: typeof clinicRecord?.website === 'string' ? clinicRecord.website : '',
+      latitude: null,
+      longitude: null,
+      openingHours: '',
+      closingHours: '',
+      workingDays: [],
+      isActive: Boolean(clinicRecord?.isActive ?? true),
+      isMainBranch: true,
+      branchManagerName: '',
+      branchManagerPhone: '',
+      branchManagerEmail: '',
+      createdAt: clinicRecord?.createdAt ?? null,
+      updatedAt: clinicRecord?.updatedAt ?? null,
+      isPrimaryClinic: true,
+    };
+
+    return [mainClinicItem, ...branches];
+  }, [branches, clinic, clinicId]);
+
   const cityOptions = useMemo(() => {
-    return Array.from(new Set(branches.map((branch) => branch.city).filter(Boolean))).sort((left, right) => left.localeCompare(right));
-  }, [branches]);
+    return Array.from(new Set(branchItems.map((branch) => branch.city).filter(Boolean))).sort((left, right) => left.localeCompare(right));
+  }, [branchItems]);
 
   const filteredBranches = useMemo(() => {
-    return branches.filter((branch) => {
+    return branchItems.filter((branch) => {
       const matchesQuery = matchesSearchQuery([branch.name, branch.address, branch.phone, branch.city], search);
       const matchesCity = cityFilter === 'all' || branch.city === cityFilter;
       const matchesActive =
@@ -78,13 +119,17 @@ export function ClinicBranchesPage() {
 
       return matchesQuery && matchesCity && matchesActive && matchesMainBranch;
     });
-  }, [activeFilter, branches, cityFilter, mainBranchFilter, search]);
+  }, [activeFilter, branchItems, cityFilter, mainBranchFilter, search]);
 
   if (!isClinicAdmin) {
     return <Navigate to="/home" replace />;
   }
 
-  const handleToggleActive = async (branch: ClinicBranch) => {
+  const handleToggleActive = async (branch: BranchListItem) => {
+    if (branch.isPrimaryClinic) {
+      return;
+    }
+
     setIsSubmitting(true);
 
     try {

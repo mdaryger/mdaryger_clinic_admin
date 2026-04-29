@@ -9,6 +9,7 @@ import { Select } from '../../components/ui/Select';
 import { Textarea } from '../../components/ui/Textarea';
 import { useCities } from '../../hooks/useCities';
 import { useCountries } from '../../hooks/useCountries';
+import { useI18n } from '../../i18n/useI18n';
 import { branchSchema, type BranchSchemaValues } from '../../lib/validation/branchSchema';
 import type { BranchFormData, ClinicBranch, WorkingDay } from '../../services/branchService';
 
@@ -44,6 +45,7 @@ function getDefaultValues(branch?: ClinicBranch | null): BranchSchemaValues {
 }
 
 export function BranchForm({ branch, clinicId, isSubmitting = false, onSubmit, onCancel }: BranchFormProps) {
+  const { t } = useI18n();
   const {
     register,
     handleSubmit,
@@ -116,16 +118,16 @@ export function BranchForm({ branch, clinicId, isSubmitting = false, onSubmit, o
   return (
     <form className="space-y-6" onSubmit={handleSubmit(submitForm)}>
       <div className="grid gap-4 sm:grid-cols-2">
-        <Input label="Name" error={errors.name?.message} {...register('name')} />
-        <Input label="Phone" error={errors.phone?.message} {...register('phone')} />
+        <Input label={t('branches.name')} error={errors.name?.message} {...register('name')} />
+        <Input label={t('branches.phone')} error={errors.phone?.message} {...register('phone')} />
         <Select
-          label="Country"
+          label={t('branches.country')}
           error={errors.countryId?.message}
           value={selectedCountryId}
           onChange={(event) => handleCountryChange(event.target.value)}
           disabled={countriesLoading}
         >
-          <option value="">{countriesLoading ? 'Loading countries...' : 'Select country'}</option>
+          <option value="">{countriesLoading ? t('branches.loadingCountries') : t('branches.selectCountry')}</option>
           {countries.map((country) => (
             <option key={country.id} value={country.id}>
               {country.name}
@@ -133,14 +135,14 @@ export function BranchForm({ branch, clinicId, isSubmitting = false, onSubmit, o
           ))}
         </Select>
         <Select
-          label="City"
+          label={t('branches.city')}
           error={errors.cityId?.message}
           value={watch('cityId')}
           onChange={(event) => handleCityChange(event.target.value)}
           disabled={!selectedCountryId || citiesLoading}
         >
           <option value="">
-            {!selectedCountryId ? 'Select country first' : citiesLoading ? 'Loading cities...' : 'Select city'}
+            {!selectedCountryId ? t('branches.selectCountryFirst') : citiesLoading ? t('branches.loadingCities') : t('branches.selectCity')}
           </option>
           {cities.map((city) => (
             <option key={city.id} value={city.id}>
@@ -148,31 +150,31 @@ export function BranchForm({ branch, clinicId, isSubmitting = false, onSubmit, o
             </option>
           ))}
         </Select>
-        <Input className="sm:col-span-2" label="Address" error={errors.address?.message} {...register('address')} />
-        <Input label="Email" type="email" error={errors.email?.message} {...register('email')} />
-        <Input label="Website" type="url" placeholder="https://example.com" error={errors.website?.message} {...register('website')} />
-        <Input label="Opening hours" type="time" error={errors.openingHours?.message} {...register('openingHours')} />
-        <Input label="Closing hours" type="time" error={errors.closingHours?.message} {...register('closingHours')} />
+        <Input className="sm:col-span-2" label={t('branches.address')} error={errors.address?.message} {...register('address')} />
+        <Input label={t('branches.email')} type="email" error={errors.email?.message} {...register('email')} />
+        <Input label={t('branches.website')} type="url" placeholder="https://example.com" error={errors.website?.message} {...register('website')} />
+        <Input label={t('branches.openingHours')} type="time" error={errors.openingHours?.message} {...register('openingHours')} />
+        <Input label={t('branches.closingHours')} type="time" error={errors.closingHours?.message} {...register('closingHours')} />
       </div>
 
-      <Textarea label="Description" error={errors.description?.message} {...register('description')} />
+      <Textarea label={t('branches.description')} error={errors.description?.message} {...register('description')} />
 
       <div className="grid gap-4 sm:grid-cols-3">
-        <Input label="Branch manager name" error={errors.branchManagerName?.message} {...register('branchManagerName')} />
-        <Input label="Branch manager phone" error={errors.branchManagerPhone?.message} {...register('branchManagerPhone')} />
-        <Input label="Branch manager email" type="email" error={errors.branchManagerEmail?.message} {...register('branchManagerEmail')} />
+        <Input label={t('branches.branchManagerName')} error={errors.branchManagerName?.message} {...register('branchManagerName')} />
+        <Input label={t('branches.branchManagerPhone')} error={errors.branchManagerPhone?.message} {...register('branchManagerPhone')} />
+        <Input label={t('branches.branchManagerEmail')} type="email" error={errors.branchManagerEmail?.message} {...register('branchManagerEmail')} />
       </div>
 
-      <Checkbox label="Main branch" description="Marks this branch as the primary clinic location." {...register('isMainBranch')} />
+      <Checkbox label={t('branches.mainBranch')} description={t('branches.mainBranchDescription')} {...register('isMainBranch')} />
 
       <div className="flex justify-end gap-2">
         {onCancel ? (
           <Button type="button" variant="secondary" onClick={onCancel}>
-            Cancel
+            {t('common.cancel')}
           </Button>
         ) : null}
         <Button type="submit" isLoading={isSubmitting}>
-          {branch ? 'Update branch' : 'Create branch'}
+          {branch ? t('branches.update') : t('branches.create')}
         </Button>
       </div>
     </form>

@@ -7,9 +7,13 @@ import { DataTable, type DataTableColumn } from '../../components/ui/DataTable';
 import { useI18n } from '../../i18n/useI18n';
 import type { ClinicBranch } from '../../services/branchService';
 
+export type BranchListItem = ClinicBranch & {
+  isPrimaryClinic?: boolean;
+};
+
 type BranchTableProps = {
-  branches: ClinicBranch[];
-  onToggleActive: (branch: ClinicBranch) => void;
+  branches: BranchListItem[];
+  onToggleActive: (branch: BranchListItem) => void;
 };
 
 function formatDate(value: unknown): string {
@@ -36,14 +40,14 @@ function formatDate(value: unknown): string {
 export function BranchTable({ branches, onToggleActive }: BranchTableProps) {
   const { t } = useI18n();
 
-  const columns: DataTableColumn<ClinicBranch>[] = [
+  const columns: DataTableColumn<BranchListItem>[] = [
     {
       key: 'name',
       header: t('branches.name'),
       cell: (branch) => (
         <div>
           <p className="font-semibold text-slate-950">{branch.name}</p>
-          <p className="text-xs text-slate-500">{branch.id}</p>
+          {branch.isPrimaryClinic ? <p className="text-xs text-slate-500">{t('branches.mainClinic')}</p> : <p className="text-xs text-slate-500">{branch.id}</p>}
         </div>
       ),
     },
@@ -83,20 +87,24 @@ export function BranchTable({ branches, onToggleActive }: BranchTableProps) {
       className: 'text-right',
       cell: (branch) => (
         <div className="flex justify-end gap-2">
-          <Link to={`/clinic-branches/${branch.id}`}>
-            <Button type="button" variant="secondary" size="icon" aria-label={t('branches.openBranch')}>
-              <Eye className="h-4 w-4" aria-hidden="true" />
-            </Button>
-          </Link>
-          <Button
-            type="button"
-            variant="secondary"
-            size="icon"
-            onClick={() => onToggleActive(branch)}
-            aria-label={branch.isActive ? t('branches.disableBranch') : t('branches.enableBranch')}
-          >
-            <Power className="h-4 w-4" aria-hidden="true" />
-          </Button>
+          {branch.isPrimaryClinic ? null : (
+            <>
+              <Link to={`/clinic-branches/${branch.id}`}>
+                <Button type="button" variant="secondary" size="icon" aria-label={t('branches.openBranch')}>
+                  <Eye className="h-4 w-4" aria-hidden="true" />
+                </Button>
+              </Link>
+              <Button
+                type="button"
+                variant="secondary"
+                size="icon"
+                onClick={() => onToggleActive(branch)}
+                aria-label={branch.isActive ? t('branches.disableBranch') : t('branches.enableBranch')}
+              >
+                <Power className="h-4 w-4" aria-hidden="true" />
+              </Button>
+            </>
+          )}
         </div>
       ),
     },
