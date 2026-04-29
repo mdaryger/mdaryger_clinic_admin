@@ -1,30 +1,34 @@
-import { Badge } from './Badge';
+import { Badge, type BadgeTone } from './Badge';
 import { useI18n } from '../../i18n/useI18n';
 
 type StatusChipProps = {
   status?: string | null;
 };
 
-function getTone(status: string): 'slate' | 'green' | 'yellow' | 'red' | 'blue' {
-  const normalized = status.toLowerCase();
+function getTone(status: string): BadgeTone {
+  const normalized = status.toLowerCase().replace(/_/g, '');
+  const toneMap: Record<string, BadgeTone> = {
+    pending: 'yellow',
+    new: 'yellow',
+    searching: 'blue',
+    accepted: 'primary',
+    approved: 'primary',
+    inprogress: 'orange',
+    scheduled: 'orange',
+    doctoronway: 'orange',
+    doctorarrived: 'teal',
+    completed: 'green',
+    done: 'green',
+    cancelled: 'red',
+    rejected: 'red',
+    blocked: 'red',
+    inactive: 'red',
+    draft: 'slate',
+    review: 'blue',
+    active: 'green',
+  };
 
-  if (['active', 'approved', 'completed', 'done'].includes(normalized)) {
-    return 'green';
-  }
-
-  if (['pending', 'new', 'in_progress', 'scheduled'].includes(normalized)) {
-    return 'yellow';
-  }
-
-  if (['rejected', 'cancelled', 'blocked', 'inactive'].includes(normalized)) {
-    return 'red';
-  }
-
-  if (['draft', 'review'].includes(normalized)) {
-    return 'blue';
-  }
-
-  return 'slate';
+  return toneMap[normalized] ?? 'slate';
 }
 
 export function StatusChip({ status }: StatusChipProps) {

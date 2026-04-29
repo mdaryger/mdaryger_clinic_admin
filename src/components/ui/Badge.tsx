@@ -2,7 +2,7 @@ import type { HTMLAttributes } from 'react';
 
 import { cn } from '../../utils/cn';
 
-type BadgeTone = 'slate' | 'primary' | 'green' | 'yellow' | 'red' | 'blue';
+export type BadgeTone = 'slate' | 'primary' | 'green' | 'yellow' | 'red' | 'blue' | 'orange' | 'teal';
 
 const tones: Record<BadgeTone, string> = {
   slate: 'bg-slate-100 text-slate-700',
@@ -11,6 +11,8 @@ const tones: Record<BadgeTone, string> = {
   yellow: 'bg-amber-50 text-amber-700',
   red: 'bg-red-50 text-red-700',
   blue: 'bg-sky-50 text-sky-700',
+  orange: 'bg-orange-50 text-orange-700',
+  teal: 'bg-teal-50 text-teal-700',
 };
 
 type BadgeProps = HTMLAttributes<HTMLSpanElement> & {

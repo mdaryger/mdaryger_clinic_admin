@@ -28,7 +28,7 @@ type DashboardState =
   | { kind: 'clinic'; data: ClinicDashboardData }
   | { kind: 'branch'; data: BranchDashboardData };
 
-type ActivityTone = 'slate' | 'primary' | 'green' | 'yellow' | 'red' | 'blue';
+type ActivityTone = 'slate' | 'primary' | 'green' | 'yellow' | 'red' | 'blue' | 'orange' | 'teal';
 
 function formatRole(role: string | null, t: (key: string) => string): string {
   if (!role) {
@@ -93,6 +93,43 @@ function formatRequestType(requestType: string, t: (key: string) => string): str
   return requestType;
 }
 
+function formatRequestStatus(status: string, t: (key: string) => string): string {
+  const normalized = status.toLowerCase().replace(/_/g, '');
+  const statusMap: Record<string, string> = {
+    pending: t('requests.status.pending'),
+    searching: t('requests.status.searching'),
+    accepted: t('requests.status.accepted'),
+    inprogress: t('requests.status.inProgress'),
+    doctoronway: t('requests.status.doctorOnWay'),
+    doctorarrived: t('requests.status.doctorArrived'),
+    completed: t('requests.status.completed'),
+    cancelled: t('requests.status.cancelled'),
+    review: t('requests.status.review'),
+    draft: t('requests.status.draft'),
+    unknown: t('requests.status.unknown'),
+  };
+
+  return statusMap[normalized] ?? status;
+}
+
+function getRequestStatusTone(status?: string | null): ActivityTone {
+  const normalized = String(status ?? '').toLowerCase().replace(/_/g, '');
+  const toneMap: Record<string, ActivityTone> = {
+    pending: 'yellow',
+    searching: 'blue',
+    accepted: 'primary',
+    inprogress: 'orange',
+    doctoronway: 'orange',
+    doctorarrived: 'teal',
+    completed: 'green',
+    cancelled: 'red',
+    review: 'blue',
+    draft: 'slate',
+  };
+
+  return toneMap[normalized] ?? 'slate';
+}
+
 function formatDateTime(value: unknown, t: (key: string) => string): string {
   if (!value) {
     return t('dashboard.noDate');
@@ -140,7 +177,8 @@ function ActivityList({
     title: string;
     subtitle: string;
     meta: string;
-    tone?: 'slate' | 'primary' | 'green' | 'yellow' | 'red' | 'blue';
+    badgeLabel?: string;
+    tone?: ActivityTone;
   }>;
 }) {
   return (
@@ -160,7 +198,8 @@ function ActivityList({
                   <p className="mt-1 text-sm text-slate-600">{item.subtitle}</p>
                 </div>
                 <div className="shrink-0 text-right">
-                  <Badge tone={item.tone ?? 'slate'}>{item.meta}</Badge>
+                  {item.badgeLabel ? <Badge tone={item.tone ?? 'slate'}>{item.badgeLabel}</Badge> : null}
+                  <p className={`text-xs text-slate-500 ${item.badgeLabel ? 'mt-2' : ''}`}>{item.meta}</p>
                 </div>
               </div>
             ))}
@@ -249,9 +288,10 @@ export function DashboardPage() {
     return dashboard.data.latestRequests.map((request) => ({
       id: request.id,
       title: getRequestTitle(request),
-      subtitle: `${formatRequestType(request.requestType, t)}${request.status ? ` • ${request.status}` : ''}`,
+      subtitle: formatRequestType(request.requestType, t),
       meta: formatDateTime(request.updatedAt ?? request.createdAt, t),
-      tone: (request.isActive ? 'blue' : 'slate') as ActivityTone,
+      badgeLabel: request.status ? formatRequestStatus(request.status, t) : undefined,
+      tone: getRequestStatusTone(request.status),
     }));
   }, [dashboard, t]);
 
