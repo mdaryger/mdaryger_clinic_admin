@@ -21,6 +21,7 @@ export type Clinic = {
   isProcedureRoom: boolean;
   procedureRoomPrice: number | null;
   isTraumaCenter: boolean;
+  traumaCenterPrice: number | null;
   location: ClinicLocation;
   isActive: boolean;
   isVerified: boolean;

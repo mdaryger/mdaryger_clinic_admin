@@ -67,6 +67,14 @@ export function BranchTable({ branches, onToggleActive }: BranchTableProps) {
       cell: (branch) => branch.phone || '-',
     },
     {
+      key: 'workingHours',
+      header: t('branches.workingHours'),
+      cell: (branch) =>
+        branch.isAroundTheClock
+          ? <Badge tone="green">{t('branches.aroundTheClock')}</Badge>
+          : <span className="text-sm text-slate-700">{branch.openingHours && branch.closingHours ? `${branch.openingHours} – ${branch.closingHours}` : '-'}</span>,
+    },
+    {
       key: 'active',
       header: t('branches.active'),
       cell: (branch) => <Badge tone={branch.isActive ? 'green' : 'slate'}>{branch.isActive ? t('branches.activeBadge') : t('branches.inactiveBadge')}</Badge>,
@@ -106,7 +114,7 @@ export function BranchTable({ branches, onToggleActive }: BranchTableProps) {
                 onClick={() => onToggleActive(branch)}
                 aria-label={branch.isActive ? t('branches.disableBranch') : t('branches.enableBranch')}
               >
-                <Power className="h-4 w-4" aria-hidden="true" />
+                <Power className="h-4 w-4 text-red-500" aria-hidden="true" />
               </Button>
             </>
           )}

@@ -11,7 +11,7 @@ type UseDepartmentsResult = {
 
 export function useDepartments(doctorType?: DoctorType | null): UseDepartmentsResult {
   const [departments, setDepartments] = useState<Department[]>([]);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(Boolean(doctorType));
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {

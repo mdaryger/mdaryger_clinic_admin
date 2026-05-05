@@ -102,7 +102,7 @@ export function AdminUsersTable({ adminUsers, onToggleActive }: AdminUsersTableP
             aria-label={adminUser.isActive ? t('adminUsers.deactivateAdmin') : t('adminUsers.activateAdmin')}
             onClick={() => onToggleActive(adminUser)}
           >
-            <Power className="h-4 w-4" aria-hidden="true" />
+            <Power className="h-4 w-4 text-red-500" aria-hidden="true" />
           </Button>
         </div>
       ),

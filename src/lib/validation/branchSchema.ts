@@ -14,12 +14,22 @@ export const branchSchema = z.object({
   email: emailField,
   website: websiteField,
   description: z.string().optional(),
-  openingHours: z.string().min(1, 'Opening time is required'),
-  closingHours: z.string().min(1, 'Closing time is required'),
+  openingHours: z.string().optional(),
+  closingHours: z.string().optional(),
+  isAroundTheClock: z.boolean(),
   isMainBranch: z.boolean(),
   branchManagerName: z.string().min(1, 'Manager name is required'),
   branchManagerPhone: z.string().min(1, 'Manager phone is required'),
   branchManagerEmail: emailField,
+}).superRefine((values, ctx) => {
+  if (!values.isAroundTheClock) {
+    if (!values.openingHours) {
+      ctx.addIssue({ code: z.ZodIssueCode.custom, path: ['openingHours'], message: 'Opening time is required' });
+    }
+    if (!values.closingHours) {
+      ctx.addIssue({ code: z.ZodIssueCode.custom, path: ['closingHours'], message: 'Closing time is required' });
+    }
+  }
 });
 
 export type BranchSchemaValues = z.infer<typeof branchSchema>;

@@ -49,6 +49,7 @@ export type ClinicBranch = {
   workingDays: WorkingDay[];
   isActive: boolean;
   isMainBranch: boolean;
+  isAroundTheClock: boolean;
   branchManagerName: string;
   branchManagerPhone: string;
   branchManagerEmail: string;

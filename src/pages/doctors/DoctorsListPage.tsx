@@ -46,8 +46,6 @@ export function DoctorsListPage() {
   const [branches, setBranches] = useState<ClinicBranch[]>([]);
   const [search, setSearch] = useState('');
   const [activeFilter, setActiveFilter] = useState('all');
-  const [verifiedFilter, setVerifiedFilter] = useState('all');
-  const [availableFilter, setAvailableFilter] = useState('all');
   const [onlineFilter, setOnlineFilter] = useState('all');
   const [busyFilter, setBusyFilter] = useState('all');
   const [isLoading, setIsLoading] = useState(true);
@@ -112,14 +110,12 @@ export function DoctorsListPage() {
         search,
       );
       const matchesActive = activeFilter === 'all' || (activeFilter === 'yes' ? doctor.isActive : !doctor.isActive);
-      const matchesVerified = verifiedFilter === 'all' || (verifiedFilter === 'yes' ? doctor.isVerified : !doctor.isVerified);
-      const matchesAvailable = availableFilter === 'all' || (availableFilter === 'yes' ? doctor.isAvailable : !doctor.isAvailable);
       const matchesOnline = onlineFilter === 'all' || (onlineFilter === 'yes' ? doctor.isOnline : !doctor.isOnline);
       const matchesBusy = busyFilter === 'all' || (busyFilter === 'yes' ? doctor.busy : !doctor.busy);
 
-      return matchesSearch && matchesActive && matchesVerified && matchesAvailable && matchesOnline && matchesBusy;
+      return matchesSearch && matchesActive && matchesOnline && matchesBusy;
     });
-  }, [activeFilter, availableFilter, busyFilter, doctors, onlineFilter, search, verifiedFilter]);
+  }, [activeFilter, busyFilter, doctors, onlineFilter, search]);
 
   const branchMap = useMemo(
     () => new Map(branches.map((branch) => [branch.id, branch.name])),
@@ -172,7 +168,7 @@ export function DoctorsListPage() {
       className: 'min-w-[150px]',
       cell: (doctor) => (
         <div className="space-y-1">
-          <p className="font-medium text-slate-900">{doctor.price}</p>
+          <p className="font-medium text-slate-900">{doctor.price} {t('doctors.somSuffix')}</p>
           <p className="text-sm text-slate-600">{doctor.experience} {t('doctors.yearsSuffix')}</p>
         </div>
       ),
@@ -184,8 +180,6 @@ export function DoctorsListPage() {
       cell: (doctor) => (
         <div className="grid gap-2 sm:grid-cols-2">
           <Badge tone={doctor.isActive ? 'green' : 'slate'}>{doctor.isActive ? t('doctors.active') : t('doctors.inactive')}</Badge>
-          <Badge tone={doctor.isVerified ? 'primary' : 'slate'}>{doctor.isVerified ? t('doctors.verified') : t('doctors.unverified')}</Badge>
-          <Badge tone={doctor.isAvailable ? 'blue' : 'slate'}>{doctor.isAvailable ? t('doctors.available') : t('doctors.unavailable')}</Badge>
           <Badge tone={doctor.isOnline ? 'green' : 'slate'}>{doctor.isOnline ? t('doctors.online') : t('doctors.offline')}</Badge>
           <Badge tone={doctor.busy ? 'yellow' : 'green'}>{doctor.busy ? t('doctors.busy') : t('doctors.free')}</Badge>
         </div>
@@ -220,7 +214,7 @@ export function DoctorsListPage() {
             aria-label={doctor.isActive ? t('doctors.deactivateDoctor') : t('doctors.activateDoctor')}
             onClick={() => void handleToggleActive(doctor)}
           >
-            <Power className="h-4 w-4" aria-hidden="true" />
+            <Power className="h-4 w-4 text-red-500" aria-hidden="true" />
           </Button>
         </div>
       ),
@@ -235,15 +229,20 @@ export function DoctorsListPage() {
     exportToCsv(
       `${mode}-doctors.csv`,
       filteredDoctors.map((doctor) => ({
-        'Full Name': formatFullName(doctor),
-        Email: doctor.email,
-        Phone: doctor.phone,
-        Specialist: doctor.specialist,
-        Price: doctor.price,
-        Experience: doctor.experience,
-        Active: doctor.isActive ? 'Yes' : 'No',
-        Verified: doctor.isVerified ? 'Yes' : 'No',
-        'Created At': formatDate(doctor.createdAt),
+        'ФИО': formatFullName(doctor),
+        'Email': doctor.email,
+        'Телефон': doctor.phone,
+        'Специалист': doctor.specialist,
+        'Тип врача': doctor.doctorType === 'adults' ? 'Взрослые' : 'Дети',
+        'Клиника': doctor.clinicName,
+        'Филиал': branchMap.get(doctor.clinicBranchId) ?? '',
+        'Цена (сом)': String(Math.round(doctor.price)),
+        'Опыт (лет)': String(Math.round(doctor.experience)),
+        'Активен': doctor.isActive ? 'Да' : 'Нет',
+        'Проверен': doctor.isVerified ? 'Да' : 'Нет',
+        'Онлайн': doctor.isOnline ? 'Да' : 'Нет',
+        'Свободен': doctor.busy ? 'Нет' : 'Да',
+        'Дата создания': formatDate(doctor.createdAt),
       })),
     );
   }
@@ -277,16 +276,7 @@ export function DoctorsListPage() {
               <option value="yes">{t('doctors.activeYes')}</option>
               <option value="no">{t('doctors.activeNo')}</option>
             </Select>
-            <Select value={verifiedFilter} onChange={(event) => setVerifiedFilter(event.target.value)}>
-              <option value="all">{t('doctors.verifiedFilter')}</option>
-              <option value="yes">{t('doctors.verifiedYes')}</option>
-              <option value="no">{t('doctors.verifiedNo')}</option>
-            </Select>
-            <Select value={availableFilter} onChange={(event) => setAvailableFilter(event.target.value)}>
-              <option value="all">{t('doctors.availableFilter')}</option>
-              <option value="yes">{t('doctors.availableYes')}</option>
-              <option value="no">{t('doctors.availableNo')}</option>
-            </Select>
+
             <Select value={onlineFilter} onChange={(event) => setOnlineFilter(event.target.value)}>
               <option value="all">{t('doctors.onlineFilter')}</option>
               <option value="yes">{t('doctors.onlineYes')}</option>

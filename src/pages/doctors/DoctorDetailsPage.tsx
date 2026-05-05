@@ -127,6 +127,7 @@ export function DoctorDetailsPage() {
       { label: t('doctors.passport'), url: doctor.passportUrl },
       { label: t('doctors.licence'), url: doctor.licenceUrl },
       { label: t('doctors.certificate'), url: doctor.certificateUrl },
+      { label: t('doctors.specialLicence'), url: doctor.specialLicenceUrl },
     ].filter((item) => item.url);
   }, [doctor, t]);
 
@@ -226,16 +227,12 @@ export function DoctorDetailsPage() {
             </CardHeader>
             <CardContent className="grid gap-4 sm:grid-cols-2">
               <DetailItem label={t('doctors.department')} value={department ? getDepartmentDisplayName(department) : doctor.departmentId || t('doctors.notSpecified')} />
-              <DetailItem label={t('doctors.doctorType')} value={doctor.doctorType || t('doctors.notSpecified')} />
+              <DetailItem label={t('doctors.doctorType')} value={doctor.doctorType === 'adults' ? t('doctors.doctorTypeAdults') : doctor.doctorType === 'kids' ? t('doctors.doctorTypeKids') : t('doctors.notSpecified')} />
+              <DetailItem label={t('doctors.gender')} value={doctor.gender === 'male' ? t('doctors.genderMale') : doctor.gender === 'female' ? t('doctors.genderFemale') : t('doctors.genderOther')} />
               <DetailItem label={t('doctors.clinic')} value={doctor.clinicName || t('doctors.notSpecified')} />
               <DetailItem label={t('doctors.branch')} value={branchName || doctor.clinicBranchId || t('doctors.notSpecified')} />
               <DetailItem label={t('doctors.cityCountry')} value={[city?.name.ru || city?.name.en, country?.name].filter(Boolean).join(', ') || t('doctors.notSpecified')} />
-              <DetailItem label={t('doctors.priceExperience')} value={`${doctor.price} / ${doctor.experience} ${t('doctors.yearsSuffix')}`} />
-              <DetailItem label={t('doctors.registrationNumber')} value={doctor.registrationNumber || t('doctors.notSpecified')} />
-              <DetailItem label={t('doctors.workPlace')} value={doctor.workPlace || t('doctors.notSpecified')} />
-              <div className="sm:col-span-2">
-                <DetailItem label={t('doctors.aboutMe')} value={doctor.aboutMe || t('doctors.notSpecified')} />
-              </div>
+              <DetailItem label={t('doctors.priceExperience')} value={`${doctor.price} ${t('doctors.somSuffix')} / ${doctor.experience} ${t('doctors.yearsSuffix')}`} />
             </CardContent>
           </Card>
 
@@ -264,7 +261,7 @@ export function DoctorDetailsPage() {
                   <div>
                     <p className="text-sm font-medium text-slate-950">{t('doctors.currentLocation')}</p>
                     <p className="text-sm text-slate-600">
-                      {doctor.currentLocation.latitude ?? '-'}, {doctor.currentLocation.longitude ?? '-'}
+                      {doctor.currentLocation?.latitude ?? '-'}, {doctor.currentLocation?.longitude ?? '-'}
                     </p>
                   </div>
                 </div>

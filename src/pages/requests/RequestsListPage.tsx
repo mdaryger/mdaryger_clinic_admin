@@ -48,7 +48,6 @@ export function RequestsListPage() {
   const [requests, setRequests] = useState<RequestRecord[]>([]);
   const [search, setSearch] = useState('');
   const [status, setStatus] = useState('all');
-  const [urgency, setUrgency] = useState('all');
   const [page, setPage] = useState(1);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -97,7 +96,7 @@ export function RequestsListPage() {
 
   useEffect(() => {
     setPage(1);
-  }, [search, status, urgency, source]);
+  }, [search, status, source]);
 
   const filteredRequests = useMemo(() => {
     return [...requests]
@@ -107,9 +106,8 @@ export function RequestsListPage() {
           search,
         );
         const matchesStatus = status === 'all' || request.status === status;
-        const matchesUrgency = urgency === 'all' || request.urgency === urgency;
 
-        return matchesSearch && matchesStatus && matchesUrgency;
+        return matchesSearch && matchesStatus;
       })
       .sort((left, right) => {
         const rankDiff = getPriorityRank(left.status) - getPriorityRank(right.status);
@@ -120,7 +118,7 @@ export function RequestsListPage() {
 
         return toMillis(right.createdAt) - toMillis(left.createdAt);
       });
-  }, [requests, search, status, urgency]);
+  }, [requests, search, status]);
 
   const pageCount = Math.max(1, Math.ceil(filteredRequests.length / PAGE_SIZE));
   const paginatedRequests = useMemo(
@@ -166,10 +164,8 @@ export function RequestsListPage() {
           <RequestFilters
             search={search}
             status={status}
-            urgency={urgency}
             onSearchChange={setSearch}
             onStatusChange={setStatus}
-            onUrgencyChange={setUrgency}
           />
         </CardHeader>
         <CardContent className="space-y-4">

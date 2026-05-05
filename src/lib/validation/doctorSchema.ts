@@ -29,6 +29,16 @@ const numericRequired = z.preprocess((value) => {
   invalid_type_error: 'Enter a number',
 }).min(0, 'Enter a valid number'));
 
+const experienceField = z.preprocess((value) => {
+  if (value === '' || value === undefined || value === null) return undefined;
+  return value;
+}, z.coerce.number({ invalid_type_error: 'Enter a number' }).min(0, 'Enter a valid number').max(80, 'Max 80 years'));
+
+const priceField = z.preprocess((value) => {
+  if (value === '' || value === undefined || value === null) return undefined;
+  return value;
+}, z.coerce.number({ invalid_type_error: 'Enter a number' }).min(0, 'Enter a valid number').max(1_000_000, 'Max 1 000 000'));
+
 const nullableCoordinate = z.preprocess((value) => {
   if (value === '' || value === undefined || value === null) {
     return null;
@@ -54,8 +64,8 @@ export function createDoctorSchema(options: { isCreate: boolean; requireClinicBr
       specialist: z.string().min(1, 'Speciality is required'),
       registrationNumber: z.string().optional(),
       workPlace: z.string().optional(),
-      experience: numericRequired,
-      price: numericRequired,
+      experience: experienceField,
+      price: priceField,
       doctorType: z.enum(['adults', 'kids'] satisfies [DoctorType, ...DoctorType[]]),
       avatar: z.string().url('Enter a valid URL').or(z.literal('')).optional(),
       aboutMe: z.string().optional(),

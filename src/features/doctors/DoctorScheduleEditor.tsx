@@ -63,9 +63,17 @@ export function DoctorScheduleEditor({ value, onChange }: DoctorScheduleEditorPr
       ...patch,
     };
 
+    if (nextDay.locked) {
+      return { ...nextDay, slots: [] };
+    }
+
+    if ('slots' in patch) {
+      return nextDay;
+    }
+
     return {
       ...nextDay,
-      slots: nextDay.locked ? [] : generateDaySlots(dayIndex, nextDay),
+      slots: generateDaySlots(dayIndex, nextDay),
     };
   };
 

@@ -17,7 +17,8 @@ export function convertRowsToCsv(rows: Record<string, unknown>[]): string {
 }
 
 export function exportToCsv(filename: string, rows: Record<string, unknown>[]): void {
-  const csvContent = convertRowsToCsv(rows);
+  const BOM = '﻿';
+  const csvContent = BOM + convertRowsToCsv(rows);
   const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
   const url = URL.createObjectURL(blob);
   const anchor = document.createElement('a');

@@ -7,6 +7,7 @@ import { Controller, useForm } from 'react-hook-form';
 import { Button } from '../../components/ui/Button';
 import { Input } from '../../components/ui/Input';
 import { Select } from '../../components/ui/Select';
+import { useBranches } from '../../hooks/useBranches';
 import { useCities } from '../../hooks/useCities';
 import { useCountries } from '../../hooks/useCountries';
 import { useDepartments } from '../../hooks/useDepartments';
@@ -121,6 +122,7 @@ export function DoctorForm({
   const selectedDepartmentId = watch('departmentId');
   const { cities, loading: citiesLoading } = useCities(selectedCountryId);
   const { departments, loading: departmentsLoading } = useDepartments(selectedDoctorType);
+  const { branches, loading: branchesLoading } = useBranches(clinicId);
 
   useEffect(() => {
     if (!countries.length || selectedCountryId) {
@@ -139,21 +141,23 @@ export function DoctorForm({
   }, [countries, selectedCountryId, setValue]);
 
   useEffect(() => {
+    if (citiesLoading) return;
     const currentCityExists = cities.some((city) => city.id === selectedCityId);
 
     if (selectedCityId && !currentCityExists) {
       setValue('cityId', '');
     }
-  }, [cities, selectedCityId, setValue]);
+  }, [cities, citiesLoading, selectedCityId, setValue]);
 
   useEffect(() => {
+    if (departmentsLoading) return;
     const currentDepartmentExists = departments.some((department) => department.id === selectedDepartmentId);
 
     if (selectedDepartmentId && !currentDepartmentExists) {
       setValue('departmentId', '');
       setValue('specialist', '');
     }
-  }, [departments, selectedDepartmentId, setValue]);
+  }, [departments, departmentsLoading, selectedDepartmentId, setValue]);
 
   const submitForm = (values: DoctorSchemaValues) => {
     const payload: DoctorFormSubmitPayload = {
@@ -166,7 +170,7 @@ export function DoctorForm({
         gender: values.gender,
         clinicId,
         clinicName,
-        clinicBranchId: lockClinicBranch ? defaultClinicBranchId ?? doctor?.clinicBranchId ?? '' : '',
+        clinicBranchId: lockClinicBranch ? defaultClinicBranchId ?? doctor?.clinicBranchId ?? '' : values.clinicBranchId ?? '',
         departmentId: values.departmentId,
         cityId: values.cityId,
         countryId: values.countryId,
@@ -318,13 +322,13 @@ export function DoctorForm({
             ))}
           </Select>
           <Input label="Опыт" type="number" min="0" error={errors.experience?.message} {...register('experience')} />
-          <Input label="Цена" type="number" min="0" error={errors.price?.message} {...register('price')} />
+          <Input label="Цена (сом)" type="number" min="0" error={errors.price?.message} {...register('price')} />
         </div>
       </section>
 
       <section className="space-y-4 rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
         <h3 className="text-lg font-semibold text-slate-950">Местоположение и филиал</h3>
-        <div className="grid gap-4">
+        <div className="grid gap-4 sm:grid-cols-2">
           <Select
             label="Город"
             error={errors.cityId?.message}
@@ -336,6 +340,20 @@ export function DoctorForm({
             {cities.map((city) => (
               <option key={city.id} value={city.id}>
                 {city.name.ru || city.name.en}
+              </option>
+            ))}
+          </Select>
+          <Select
+            label="Филиал"
+            error={errors.clinicBranchId?.message}
+            value={watch('clinicBranchId')}
+            disabled={lockClinicBranch || branchesLoading}
+            onChange={(event) => setValue('clinicBranchId', event.target.value, { shouldValidate: true })}
+          >
+            <option value="">{branchesLoading ? 'Загрузка филиалов...' : 'Не выбрано'}</option>
+            {branches.map((branch) => (
+              <option key={branch.id} value={branch.id}>
+                {branch.name}
               </option>
             ))}
           </Select>

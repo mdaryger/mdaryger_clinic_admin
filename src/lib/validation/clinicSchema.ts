@@ -30,6 +30,7 @@ export function createClinicSchema(t: (key: string) => string) {
       isProcedureRoom: z.boolean(),
       procedureRoomPrice: nullableNumber,
       isTraumaCenter: z.boolean(),
+      traumaCenterPrice: nullableNumber,
       latitude: nullableNumber,
       longitude: nullableNumber,
     })
@@ -39,6 +40,13 @@ export function createClinicSchema(t: (key: string) => string) {
           code: z.ZodIssueCode.custom,
           path: ['procedureRoomPrice'],
           message: t('validation.requiredProcedureRoomPrice'),
+        });
+      }
+      if (values.isTraumaCenter && (values.traumaCenterPrice === null || Number.isNaN(values.traumaCenterPrice))) {
+        context.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['traumaCenterPrice'],
+          message: t('validation.requiredTraumaCenterPrice'),
         });
       }
     });

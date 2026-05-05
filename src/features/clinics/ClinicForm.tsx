@@ -48,6 +48,7 @@ function getDefaultValues(clinic?: Clinic | null): ClinicSchemaValues {
     isProcedureRoom: clinic?.isProcedureRoom ?? false,
     procedureRoomPrice: clinic?.procedureRoomPrice ?? null,
     isTraumaCenter: clinic?.isTraumaCenter ?? false,
+    traumaCenterPrice: clinic?.traumaCenterPrice ?? null,
     latitude: clinic?.location.latitude ?? null,
     longitude: clinic?.location.longitude ?? null,
   };
@@ -71,6 +72,8 @@ export function ClinicForm({ clinic, isSubmitting = false, onSubmit, onCancel }:
   });
   const selectedCountryId = watch('countryId');
   const selectedCityId = watch('cityId');
+  const isProcedureRoom = watch('isProcedureRoom');
+  const isTraumaCenter = watch('isTraumaCenter');
   const { countries, loading: countriesLoading } = useCountries(true);
   const { cities, loading: citiesLoading } = useCities(selectedCountryId);
 
@@ -134,6 +137,7 @@ export function ClinicForm({ clinic, isSubmitting = false, onSubmit, onCancel }:
       isProcedureRoom: values.isProcedureRoom,
       procedureRoomPrice: values.isProcedureRoom ? values.procedureRoomPrice : null,
       isTraumaCenter: values.isTraumaCenter,
+      traumaCenterPrice: values.isTraumaCenter ? values.traumaCenterPrice : null,
       location: {
         latitude: values.latitude,
         longitude: values.longitude,
@@ -192,7 +196,6 @@ export function ClinicForm({ clinic, isSubmitting = false, onSubmit, onCancel }:
         <Input label={t('superAdmin.email')} type="email" error={errors.email?.message} {...register('email')} />
         <Input label={t('superAdmin.website')} type="url" placeholder={t('superAdmin.websitePlaceholder')} error={errors.website?.message} {...register('website')} />
         <Input label={t('superAdmin.workingHours')} placeholder={t('superAdmin.workingHoursPlaceholder')} error={errors.workingHours?.message} {...register('workingHours')} />
-        <Input label={t('superAdmin.procedureRoomPrice')} type="number" step="0.01" error={errors.procedureRoomPrice?.message} {...register('procedureRoomPrice')} />
         <Input label={t('superAdmin.latitude')} type="number" step="any" error={errors.latitude?.message} {...register('latitude')} />
         <Input label={t('superAdmin.longitude')} type="number" step="any" error={errors.longitude?.message} {...register('longitude')} />
       </div>
@@ -240,6 +243,28 @@ export function ClinicForm({ clinic, isSubmitting = false, onSubmit, onCancel }:
         <Checkbox label={t('superAdmin.procedureRoom')} {...register('isProcedureRoom')} />
         <Checkbox label={t('superAdmin.traumaCenter')} {...register('isTraumaCenter')} />
       </div>
+      {isProcedureRoom && (
+        <div className="max-w-xs">
+          <Input
+            label={t('superAdmin.procedureRoomPrice')}
+            type="number"
+            step="0.01"
+            error={errors.procedureRoomPrice?.message}
+            {...register('procedureRoomPrice')}
+          />
+        </div>
+      )}
+      {isTraumaCenter && (
+        <div className="max-w-xs">
+          <Input
+            label={t('superAdmin.traumaCenterPrice')}
+            type="number"
+            step="0.01"
+            error={errors.traumaCenterPrice?.message}
+            {...register('traumaCenterPrice')}
+          />
+        </div>
+      )}
 
       <div className="flex justify-end gap-2">
         {onCancel ? (

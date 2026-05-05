@@ -37,6 +37,7 @@ function getDefaultValues(branch?: ClinicBranch | null): BranchSchemaValues {
     description: branch?.description ?? '',
     openingHours: branch?.openingHours ?? '',
     closingHours: branch?.closingHours ?? '',
+    isAroundTheClock: branch?.isAroundTheClock ?? false,
     isMainBranch: branch?.isMainBranch ?? false,
     branchManagerName: branch?.branchManagerName ?? '',
     branchManagerPhone: branch?.branchManagerPhone ?? '',
@@ -57,6 +58,7 @@ export function BranchForm({ branch, clinicId, isSubmitting = false, onSubmit, o
     defaultValues: getDefaultValues(branch),
   });
   const selectedCountryId = watch('countryId');
+  const isAroundTheClock = watch('isAroundTheClock');
   const { countries, loading: countriesLoading } = useCountries(true);
   const { cities, loading: citiesLoading } = useCities(selectedCountryId);
 
@@ -67,13 +69,15 @@ export function BranchForm({ branch, clinicId, isSubmitting = false, onSubmit, o
       return;
     }
 
+    if (citiesLoading) return;
+
     const currentCityExists = cities.some((city) => city.id === watch('cityId'));
 
     if (!currentCityExists) {
       setValue('cityId', '');
       setValue('city', '');
     }
-  }, [cities, selectedCountryId, setValue, watch]);
+  }, [cities, citiesLoading, selectedCountryId, setValue, watch]);
 
   const handleCountryChange = (countryId: string) => {
     const country = countries.find((item) => item.id === countryId);
@@ -104,8 +108,9 @@ export function BranchForm({ branch, clinicId, isSubmitting = false, onSubmit, o
       district: branch?.district ?? '',
       latitude: branch?.latitude ?? null,
       longitude: branch?.longitude ?? null,
-      openingHours: values.openingHours,
-      closingHours: values.closingHours,
+      openingHours: values.isAroundTheClock ? '' : (values.openingHours ?? ''),
+      closingHours: values.isAroundTheClock ? '' : (values.closingHours ?? ''),
+      isAroundTheClock: values.isAroundTheClock,
       workingDays: branch?.workingDays?.length ? branch.workingDays : defaultWorkingDays,
       isActive: branch?.isActive ?? true,
       isMainBranch: values.isMainBranch,
@@ -153,8 +158,19 @@ export function BranchForm({ branch, clinicId, isSubmitting = false, onSubmit, o
         <Input className="sm:col-span-2" label={t('branches.address')} error={errors.address?.message} {...register('address')} />
         <Input label={t('branches.email')} type="email" error={errors.email?.message} {...register('email')} />
         <Input label={t('branches.website')} type="url" placeholder="https://example.com" error={errors.website?.message} {...register('website')} />
-        <Input label={t('branches.openingHours')} type="time" error={errors.openingHours?.message} {...register('openingHours')} />
-        <Input label={t('branches.closingHours')} type="time" error={errors.closingHours?.message} {...register('closingHours')} />
+        <div className="sm:col-span-2">
+          <Checkbox
+            label={t('branches.aroundTheClock')}
+            description={t('branches.aroundTheClockDescription')}
+            {...register('isAroundTheClock')}
+          />
+        </div>
+        {!isAroundTheClock && (
+          <>
+            <Input label={t('branches.openingHours')} type="time" error={errors.openingHours?.message} {...register('openingHours')} />
+            <Input label={t('branches.closingHours')} type="time" error={errors.closingHours?.message} {...register('closingHours')} />
+          </>
+        )}
       </div>
 
       <Textarea label={t('branches.description')} error={errors.description?.message} {...register('description')} />

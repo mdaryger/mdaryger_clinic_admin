@@ -183,8 +183,19 @@ export function BranchDetailsPage() {
             <CardContent className="grid gap-4 sm:grid-cols-2">
               <DetailItem label={t('branches.address')} value={branch.address} />
               <DetailItem label={t('branches.cityCountry')} value={[branch.city, branch.country].filter(Boolean).join(', ')} />
-              <DetailItem label={t('branches.openingHours')} value={branch.openingHours} />
-              <DetailItem label={t('branches.closingHours')} value={branch.closingHours} />
+              {branch.isAroundTheClock ? (
+                <div className="sm:col-span-2">
+                  <p className="text-xs font-semibold uppercase text-slate-500">{t('branches.workingHours')}</p>
+                  <div className="mt-1">
+                    <Badge tone="green">{t('branches.aroundTheClock')}</Badge>
+                  </div>
+                </div>
+              ) : (
+                <>
+                  <DetailItem label={t('branches.openingHours')} value={branch.openingHours || t('branches.noData')} />
+                  <DetailItem label={t('branches.closingHours')} value={branch.closingHours || t('branches.noData')} />
+                </>
+              )}
               <DetailItem label={t('branches.description')} value={branch.description} />
               <DetailItem label={t('branches.workingDays')} value={formatWorkingDays(branch.workingDays, t)} />
             </CardContent>
