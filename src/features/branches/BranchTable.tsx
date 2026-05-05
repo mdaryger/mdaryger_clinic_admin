@@ -1,4 +1,4 @@
-import { Eye, Power } from 'lucide-react';
+import { Eye, Pencil, Power } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 import { Badge } from '../../components/ui/Badge';
@@ -92,6 +92,11 @@ export function BranchTable({ branches, onToggleActive }: BranchTableProps) {
               <Link to={`/clinic-branches/${branch.id}`}>
                 <Button type="button" variant="secondary" size="icon" aria-label={t('branches.openBranch')}>
                   <Eye className="h-4 w-4" aria-hidden="true" />
+                </Button>
+              </Link>
+              <Link to={`/clinic-branches/${branch.id}/edit`}>
+                <Button type="button" variant="secondary" size="icon" aria-label={t('branches.edit')}>
+                  <Pencil className="h-4 w-4" aria-hidden="true" />
                 </Button>
               </Link>
               <Button

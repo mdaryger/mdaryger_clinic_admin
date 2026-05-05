@@ -10,6 +10,7 @@ import {
   updateDoc,
   where,
   deleteDoc,
+  writeBatch,
   type DocumentData,
   type QueryDocumentSnapshot,
 } from 'firebase/firestore';
@@ -109,6 +110,18 @@ export async function getActiveBranchesByClinicId(clinicId: string): Promise<Cli
   }
 }
 
+async function getMainBranchesByClinicId(clinicId: string): Promise<ClinicBranch[]> {
+  const snapshot = await getDocs(
+    query(
+      collection(db, CLINIC_BRANCHES_COLLECTION),
+      where('clinicId', '==', clinicId),
+      where('isMainBranch', '==', true),
+    ),
+  );
+
+  return snapshot.docs.map(normalizeBranch);
+}
+
 export async function getBranchById(branchId: string): Promise<ClinicBranch | null> {
   if (!branchId.trim()) {
     return null;
@@ -129,13 +142,26 @@ export async function getBranchById(branchId: string): Promise<ClinicBranch | nu
 export async function createBranch(data: BranchFormData): Promise<ClinicBranch> {
   const collectionRef = collection(db, CLINIC_BRANCHES_COLLECTION);
   const documentRef = doc(collectionRef);
+  const batch = writeBatch(db);
 
-  await setDoc(documentRef, {
+  if (data.isMainBranch) {
+    const currentMainBranches = await getMainBranchesByClinicId(data.clinicId);
+
+    currentMainBranches.forEach((branch) => {
+      batch.update(doc(db, CLINIC_BRANCHES_COLLECTION, branch.id), {
+        isMainBranch: false,
+        updatedAt: serverTimestamp(),
+      });
+    });
+  }
+
+  batch.set(documentRef, {
     id: documentRef.id,
     ...data,
     createdAt: serverTimestamp(),
     updatedAt: serverTimestamp(),
   });
+  await batch.commit();
   const createdBranch = await getBranchById(documentRef.id);
 
   if (!createdBranch) {
@@ -146,6 +172,33 @@ export async function createBranch(data: BranchFormData): Promise<ClinicBranch> 
 }
 
 export async function updateBranch(branchId: string, data: Partial<BranchFormData>): Promise<void> {
+  if (data.isMainBranch) {
+    const currentBranch = await getBranchById(branchId);
+
+    if (!currentBranch) {
+      throw new Error(`Branch ${branchId} not found.`);
+    }
+
+    const batch = writeBatch(db);
+    const currentMainBranches = await getMainBranchesByClinicId(currentBranch.clinicId);
+
+    currentMainBranches
+      .filter((branch) => branch.id !== branchId)
+      .forEach((branch) => {
+        batch.update(doc(db, CLINIC_BRANCHES_COLLECTION, branch.id), {
+          isMainBranch: false,
+          updatedAt: serverTimestamp(),
+        });
+      });
+
+    batch.update(doc(db, CLINIC_BRANCHES_COLLECTION, branchId), {
+      ...data,
+      updatedAt: serverTimestamp(),
+    });
+    await batch.commit();
+    return;
+  }
+
   await updateDoc(doc(db, CLINIC_BRANCHES_COLLECTION, branchId), {
     ...data,
     updatedAt: serverTimestamp(),

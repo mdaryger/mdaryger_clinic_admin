@@ -1,4 +1,4 @@
-import { ArrowLeft, CalendarClock, Mail, MapPin, Phone, ShieldCheck, Stethoscope, UserRound } from 'lucide-react';
+import { ArrowLeft, CalendarClock, Mail, MapPin, Pencil, Phone, ShieldCheck, Stethoscope, UserRound } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Link, Navigate, useParams } from 'react-router-dom';
 
@@ -147,12 +147,20 @@ export function BranchDetailsPage() {
         title={branch.name}
         description={[branch.city, branch.country].filter(Boolean).join(', ') || t('branches.detailsFallback')}
         actions={
-          <Link to="/clinic-branches">
-            <Button type="button" variant="secondary">
-              <ArrowLeft className="h-4 w-4" aria-hidden="true" />
-              {t('branches.back')}
-            </Button>
-          </Link>
+          <>
+            <Link to={`/clinic-branches/${branch.id}/edit`}>
+              <Button type="button">
+                <Pencil className="h-4 w-4" aria-hidden="true" />
+                {t('branches.edit')}
+              </Button>
+            </Link>
+            <Link to="/clinic-branches">
+              <Button type="button" variant="secondary">
+                <ArrowLeft className="h-4 w-4" aria-hidden="true" />
+                {t('branches.back')}
+              </Button>
+            </Link>
+          </>
         }
       />
 

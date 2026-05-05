@@ -10,6 +10,7 @@ import { CreateAdminUserPage } from '../pages/admin-users/CreateAdminUserPage';
 import { BranchDetailsPage } from '../pages/branches/BranchDetailsPage';
 import { ClinicBranchesPage } from '../pages/branches/ClinicBranchesPage';
 import { CreateBranchPage } from '../pages/branches/CreateBranchPage';
+import { EditBranchPage } from '../pages/branches/EditBranchPage';
 import { CreateDoctorPage } from '../pages/doctors/CreateDoctorPage';
 import { DoctorDetailsPage } from '../pages/doctors/DoctorDetailsPage';
 import { DoctorsListPage } from '../pages/doctors/DoctorsListPage';
@@ -70,6 +71,7 @@ export const router = createBrowserRouter([
               { path: '/clinic-overview', element: <ClinicOverviewPage /> },
               { path: '/clinic-branches', element: <ClinicBranchesPage /> },
               { path: '/clinic-branches/create', element: <CreateBranchPage /> },
+              { path: '/clinic-branches/:branchId/edit', element: <EditBranchPage /> },
               { path: '/clinic-branches/:branchId', element: <BranchDetailsPage /> },
               { path: '/clinic-doctors', element: <DoctorsListPage /> },
               { path: '/clinic-doctors/create', element: <CreateDoctorPage /> },

@@ -88,7 +88,7 @@ export function ClinicBranchesPage() {
       closingHours: '',
       workingDays: [],
       isActive: Boolean(clinicRecord?.isActive ?? true),
-      isMainBranch: true,
+      isMainBranch: false,
       branchManagerName: '',
       branchManagerPhone: '',
       branchManagerEmail: '',
