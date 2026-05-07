@@ -12,9 +12,11 @@ import { RequestFilters } from '../../features/requests/RequestFilters';
 import { RequestTable } from '../../features/requests/RequestTable';
 import { useI18n } from '../../i18n/useI18n';
 import {
+  getRequestListBasePath,
   getRequestSourceFromPathname,
   getRequestsByBranchId,
   getRequestsByClinicId,
+  isBranchRequestPath,
   type RequestRecord,
 } from '../../services/requestService';
 import { useAuthStore } from '../../store/authStore';
@@ -37,14 +39,8 @@ export function RequestsListPage() {
   const [searchParams] = useSearchParams();
   const { clinicId, clinicBranchId, isClinicAdmin, isBranchAdmin } = useAuthStore();
   const source = getRequestSourceFromPathname(pathname, searchParams);
-  const isBranchMode = pathname.startsWith('/branch-requests');
-  const detailsBasePath = pathname.startsWith('/clinic-visit-requests')
-    ? '/clinic-visit-requests'
-    : pathname.startsWith('/home-visit-requests-plan')
-      ? '/home-visit-requests-plan'
-      : pathname.startsWith('/clinic-requests')
-        ? '/clinic-requests'
-        : '/branch-requests';
+  const isBranchMode = isBranchRequestPath(pathname);
+  const detailsBasePath = getRequestListBasePath(pathname);
   const [requests, setRequests] = useState<RequestRecord[]>([]);
   const [search, setSearch] = useState('');
   const [status, setStatus] = useState('all');
@@ -176,7 +172,7 @@ export function RequestsListPage() {
               <RequestTable
                 requests={paginatedRequests}
                 detailsBasePath={detailsBasePath}
-                sourceQuery={isBranchMode ? source : undefined}
+                sourceQuery={isBranchMode && detailsBasePath === '/branch-requests' ? source : undefined}
               />
               {filteredRequests.length > PAGE_SIZE ? (
                 <PaginationControls page={page} pageCount={pageCount} onPageChange={setPage} />

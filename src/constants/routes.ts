@@ -16,5 +16,8 @@ export const ROUTES = {
   branchOverview: '/branch-overview',
   branchDoctors: '/branch-doctors',
   branchRequests: '/branch-requests',
+  branchHomeRequests: '/branch-home-requests',
+  branchClinicVisitRequests: '/branch-clinic-visit-requests',
+  branchHomeVisitRequestsPlan: '/branch-home-visit-requests-plan',
   settings: '/settings',
 } as const;

@@ -47,7 +47,9 @@ const branchAdminMenu: MenuItem[] = [
   { labelKey: 'nav.dashboard', path: '/home', icon: Home },
   { labelKey: 'nav.branchOverview', path: '/branch-overview', icon: LayoutDashboard },
   { labelKey: 'nav.doctors', path: '/branch-doctors', icon: Stethoscope },
-  { labelKey: 'nav.requests', path: '/branch-requests', icon: ClipboardList },
+  { labelKey: 'nav.homeRequests', path: '/branch-home-requests', icon: ClipboardList },
+  { labelKey: 'nav.clinicVisitRequests', path: '/branch-clinic-visit-requests', icon: CalendarDays },
+  { labelKey: 'nav.plannedVisits', path: '/branch-home-visit-requests-plan', icon: CalendarDays },
 ];
 
 function formatRole(role: string | null, t: (key: string) => string) {

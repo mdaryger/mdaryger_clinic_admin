@@ -9,8 +9,10 @@ import { PageHeader } from '../../components/ui/PageHeader';
 import { RequestDetailsSections } from '../../features/requests/RequestDetailsSections';
 import { useI18n } from '../../i18n/useI18n';
 import {
+  getRequestListBasePath,
   getRequestById,
   getRequestSourceFromPathname,
+  isBranchRequestPath,
   matchesRequestBranch,
   type RequestRecord,
 } from '../../services/requestService';
@@ -22,14 +24,8 @@ export function RequestDetailsPage() {
   const [searchParams] = useSearchParams();
   const { requestId } = useParams();
   const source = getRequestSourceFromPathname(pathname, searchParams);
-  const isBranchMode = pathname.startsWith('/branch-requests');
-  const basePath = pathname.startsWith('/clinic-visit-requests')
-    ? '/clinic-visit-requests'
-    : pathname.startsWith('/home-visit-requests-plan')
-      ? '/home-visit-requests-plan'
-      : pathname.startsWith('/clinic-requests')
-        ? '/clinic-requests'
-        : '/branch-requests';
+  const isBranchMode = isBranchRequestPath(pathname);
+  const basePath = getRequestListBasePath(pathname);
   const { clinicId, clinicBranchId, isClinicAdmin, isBranchAdmin } = useAuthStore();
   const [request, setRequest] = useState<RequestRecord | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -105,7 +101,7 @@ export function RequestDetailsPage() {
         title={sourceTitle}
         description={t('requests.detailsDescription', { id: request.id })}
         actions={
-          <Link to={`${basePath}${isBranchMode ? `?source=${source}` : ''}`}>
+          <Link to={`${basePath}${isBranchMode && basePath === '/branch-requests' ? `?source=${source}` : ''}`}>
             <Button type="button" variant="secondary">
               <ArrowLeft className="h-4 w-4" aria-hidden="true" />
               {t('requests.back')}

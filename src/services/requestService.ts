@@ -165,8 +165,20 @@ export function getRequestSourceFromPathname(pathname: string, searchParams?: UR
     return 'clinicVisit';
   }
 
+  if (pathname.startsWith('/branch-clinic-visit-requests')) {
+    return 'clinicVisit';
+  }
+
   if (pathname.startsWith('/home-visit-requests-plan')) {
     return 'plannedHomeVisit';
+  }
+
+  if (pathname.startsWith('/branch-home-visit-requests-plan')) {
+    return 'plannedHomeVisit';
+  }
+
+  if (pathname.startsWith('/branch-home-requests')) {
+    return 'homeVisit';
   }
 
   if (pathname.startsWith('/branch-requests')) {
@@ -178,4 +190,41 @@ export function getRequestSourceFromPathname(pathname: string, searchParams?: UR
   }
 
   return 'homeVisit';
+}
+
+export function isBranchRequestPath(pathname: string): boolean {
+  return (
+    pathname.startsWith('/branch-requests') ||
+    pathname.startsWith('/branch-home-requests') ||
+    pathname.startsWith('/branch-clinic-visit-requests') ||
+    pathname.startsWith('/branch-home-visit-requests-plan')
+  );
+}
+
+export function getRequestListBasePath(pathname: string): string {
+  if (pathname.startsWith('/clinic-visit-requests')) {
+    return '/clinic-visit-requests';
+  }
+
+  if (pathname.startsWith('/home-visit-requests-plan')) {
+    return '/home-visit-requests-plan';
+  }
+
+  if (pathname.startsWith('/clinic-requests')) {
+    return '/clinic-requests';
+  }
+
+  if (pathname.startsWith('/branch-clinic-visit-requests')) {
+    return '/branch-clinic-visit-requests';
+  }
+
+  if (pathname.startsWith('/branch-home-visit-requests-plan')) {
+    return '/branch-home-visit-requests-plan';
+  }
+
+  if (pathname.startsWith('/branch-home-requests')) {
+    return '/branch-home-requests';
+  }
+
+  return '/branch-requests';
 }

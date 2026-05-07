@@ -35,9 +35,6 @@ function formatDate(value: unknown): string {
     : new Intl.DateTimeFormat('ru-RU', { day: '2-digit', month: '2-digit', year: 'numeric' }).format(date);
 }
 
-function formatRole(role: AdminUser['normalizedRole']): string {
-  return role === 'clinic_branch_admin' ? 'Clinic branch admin' : 'Clinic admin';
-}
 
 export function AdminUsersTable({ adminUsers, onToggleActive }: AdminUsersTableProps) {
   const { t } = useI18n();
