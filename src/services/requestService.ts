@@ -1,6 +1,8 @@
 import { collection, doc, getDoc, getDocs, query, where, type DocumentData, type QueryDocumentSnapshot } from 'firebase/firestore';
 
 import { db } from '../firebase/firebase';
+import { getDoctorsByClinicId } from './doctorService';
+import { toMillis } from '../utils/date';
 
 export type RequestSource = 'homeVisit' | 'clinicVisit' | 'plannedHomeVisit';
 
@@ -200,6 +202,61 @@ export function isBranchRequestPath(pathname: string): boolean {
     pathname.startsWith('/branch-home-visit-requests-plan')
   );
 }
+
+const DOCTOR_ID_FIELDS = ['doctorId', 'selectedDoctorId', 'visitedDoctorId'] as const;
+
+function chunkArray<T>(array: T[], chunkSize: number): T[][] {
+  const chunks: T[][] = [];
+  for (let i = 0; i < array.length; i += chunkSize) {
+    chunks.push(array.slice(i, i + chunkSize));
+  }
+  return chunks;
+}
+
+async function fetchRequestsByClinicDoctors(
+  clinicId: string,
+  collectionName: string,
+  source: RequestSource,
+): Promise<RequestRecord[]> {
+  const doctors = await getDoctorsByClinicId(clinicId);
+
+  if (doctors.length === 0) {
+    return [];
+  }
+
+  const doctorIds = doctors.map((doctor) => doctor.id);
+  const chunks = chunkArray(doctorIds, 10);
+  const seen = new Map<string, RequestRecord>();
+
+  const results = await Promise.all(
+    chunks.flatMap((chunk) =>
+      DOCTOR_ID_FIELDS.map((field) =>
+        getDocs(query(collection(db, collectionName), where(field, 'in', chunk))).then((snapshot) =>
+          snapshot.docs.map((documentSnapshot) => normalizeRequestDocument(source, documentSnapshot)),
+        ),
+      ),
+    ),
+  );
+
+  for (const records of results) {
+    for (const record of records) {
+      if (!seen.has(record.id)) {
+        seen.set(record.id, record);
+      }
+    }
+  }
+
+  return [...seen.values()].sort((a, b) => toMillis(b.createdAt) - toMillis(a.createdAt));
+}
+
+export function getHomeVisitRequestsByClinicDoctors(clinicId: string): Promise<RequestRecord[]> {
+  return fetchRequestsByClinicDoctors(clinicId, 'home_visit_requests', 'homeVisit');
+}
+
+export function getPlannedVisitRequestsByClinicDoctors(clinicId: string): Promise<RequestRecord[]> {
+  return fetchRequestsByClinicDoctors(clinicId, 'home_visit_requests_plan', 'plannedHomeVisit');
+}
+
 
 export function getRequestListBasePath(pathname: string): string {
   if (pathname.startsWith('/clinic-visit-requests')) {

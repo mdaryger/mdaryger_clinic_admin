@@ -12,6 +12,8 @@ import { RequestFilters } from '../../features/requests/RequestFilters';
 import { RequestTable } from '../../features/requests/RequestTable';
 import { useI18n } from '../../i18n/useI18n';
 import {
+  getHomeVisitRequestsByClinicDoctors,
+  getPlannedVisitRequestsByClinicDoctors,
   getRequestListBasePath,
   getRequestSourceFromPathname,
   getRequestsByBranchId,
@@ -74,11 +76,19 @@ export function RequestsListPage() {
     setError(null);
 
     try {
-      setRequests(
-        isBranchMode && clinicBranchId
-          ? await getRequestsByBranchId(source, clinicId, clinicBranchId)
-          : await getRequestsByClinicId(source, clinicId),
-      );
+      let result: RequestRecord[];
+
+      if (isBranchMode && clinicBranchId) {
+        result = await getRequestsByBranchId(source, clinicId, clinicBranchId);
+      } else if (!isBranchMode && source === 'homeVisit') {
+        result = await getHomeVisitRequestsByClinicDoctors(clinicId);
+      } else if (!isBranchMode && source === 'plannedHomeVisit') {
+        result = await getPlannedVisitRequestsByClinicDoctors(clinicId);
+      } else {
+        result = await getRequestsByClinicId(source, clinicId);
+      }
+
+      setRequests(result);
     } catch (unknownError) {
       setError(unknownError instanceof Error ? unknownError.message : t('requests.loadFailed'));
     } finally {
