@@ -110,10 +110,11 @@ export function BranchTable({ branches, onToggleActive }: BranchTableProps) {
                 type="button"
                 variant="secondary"
                 size="icon"
+                className={branch.isActive ? 'text-red-600 hover:border-red-200 hover:text-red-700' : 'text-emerald-600 hover:border-emerald-200 hover:text-emerald-700'}
                 onClick={() => onToggleActive(branch)}
                 aria-label={branch.isActive ? t('branches.disableBranch') : t('branches.enableBranch')}
               >
-                <Power className="h-4 w-4 text-red-500" aria-hidden="true" />
+                <Power className="h-4 w-4" aria-hidden="true" />
               </Button>
             </>
           )}

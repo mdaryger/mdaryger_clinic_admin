@@ -101,10 +101,11 @@ export function AdminUsersTable({ adminUsers, onToggleActive }: AdminUsersTableP
             type="button"
             variant="secondary"
             size="icon"
+            className={adminUser.isActive ? 'text-red-600 hover:border-red-200 hover:text-red-700' : 'text-emerald-600 hover:border-emerald-200 hover:text-emerald-700'}
             aria-label={adminUser.isActive ? t('adminUsers.deactivateAdmin') : t('adminUsers.activateAdmin')}
             onClick={() => onToggleActive(adminUser)}
           >
-            <Power className="h-4 w-4 text-red-500" aria-hidden="true" />
+            <Power className="h-4 w-4" aria-hidden="true" />
           </Button>
         </div>
       ),

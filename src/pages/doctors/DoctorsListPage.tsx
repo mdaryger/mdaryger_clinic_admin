@@ -5,6 +5,7 @@ import { Link, Navigate, useLocation } from 'react-router-dom';
 import { Badge } from '../../components/ui/Badge';
 import { Button } from '../../components/ui/Button';
 import { Card, CardContent, CardHeader } from '../../components/ui/Card';
+import { ConfirmDialog } from '../../components/ui/ConfirmDialog';
 import { DataTable, type DataTableColumn } from '../../components/ui/DataTable';
 import { ErrorState } from '../../components/ui/ErrorState';
 import { LoadingState } from '../../components/ui/LoadingState';
@@ -50,6 +51,7 @@ export function DoctorsListPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [doctorToDeactivate, setDoctorToDeactivate] = useState<Doctor | null>(null);
 
   const loadDoctors = useCallback(async () => {
     setIsLoading(true);
@@ -93,6 +95,11 @@ export function DoctorsListPage() {
   }, [loadDoctors]);
 
   const handleToggleActive = useCallback(async (doctor: Doctor) => {
+    if (doctor.isActive) {
+      setDoctorToDeactivate(doctor);
+      return;
+    }
+
     setIsSubmitting(true);
 
     try {
@@ -106,6 +113,26 @@ export function DoctorsListPage() {
       setIsSubmitting(false);
     }
   }, [loadDoctors, showToast, t]);
+
+  const handleConfirmDeactivate = useCallback(async () => {
+    if (!doctorToDeactivate) {
+      return;
+    }
+
+    setIsSubmitting(true);
+
+    try {
+      await updateDoctorStatus(doctorToDeactivate.id, false);
+      showToast({ type: 'success', title: t('doctors.deactivateDoctor') });
+      setDoctorToDeactivate(null);
+      await loadDoctors();
+    } catch (unknownError) {
+      const message = unknownError instanceof Error ? unknownError.message : t('doctors.updateFailed');
+      showToast({ type: 'error', title: t('doctors.updateFailed'), description: message });
+    } finally {
+      setIsSubmitting(false);
+    }
+  }, [doctorToDeactivate, loadDoctors, showToast, t]);
 
   const filteredDoctors = useMemo(() => {
     return doctors.filter((doctor) => {
@@ -213,10 +240,11 @@ export function DoctorsListPage() {
             type="button"
             variant="secondary"
             size="icon"
+            className={doctor.isActive ? 'text-red-600 hover:border-red-200 hover:text-red-700' : 'text-emerald-600 hover:border-emerald-200 hover:text-emerald-700'}
             aria-label={doctor.isActive ? t('doctors.deactivateDoctor') : t('doctors.activateDoctor')}
             onClick={() => void handleToggleActive(doctor)}
           >
-            <Power className="h-4 w-4 text-red-500" aria-hidden="true" />
+            <Power className="h-4 w-4" aria-hidden="true" />
           </Button>
         </div>
       ),
@@ -300,6 +328,17 @@ export function DoctorsListPage() {
           {isSubmitting && !isLoading ? <p className="mt-4 text-sm text-slate-500">{t('doctors.updatingStatus')}</p> : null}
         </CardContent>
       </Card>
+
+      <ConfirmDialog
+        isOpen={doctorToDeactivate !== null}
+        title={t('doctors.deactivateConfirmTitle')}
+        description={t('doctors.deactivateConfirmDescription', { name: doctorToDeactivate ? formatFullName(doctorToDeactivate) : '' })}
+        confirmLabel={t('doctors.deactivateDoctor')}
+        cancelLabel={t('common.cancel')}
+        isLoading={isSubmitting}
+        onConfirm={() => void handleConfirmDeactivate()}
+        onCancel={() => setDoctorToDeactivate(null)}
+      />
     </div>
   );
 }

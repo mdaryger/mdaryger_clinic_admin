@@ -4,6 +4,7 @@ import { Link, Navigate } from 'react-router-dom';
 
 import { Button } from '../../components/ui/Button';
 import { Card, CardContent, CardHeader } from '../../components/ui/Card';
+import { ConfirmDialog } from '../../components/ui/ConfirmDialog';
 import { ErrorState } from '../../components/ui/ErrorState';
 import { LoadingState } from '../../components/ui/LoadingState';
 import { PageHeader } from '../../components/ui/PageHeader';
@@ -28,6 +29,7 @@ export function AdminUsersPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [adminUserToDeactivate, setAdminUserToDeactivate] = useState<AdminUser | null>(null);
 
   const loadAdminUsers = useCallback(async () => {
     if (!clinicId) {
@@ -70,11 +72,36 @@ export function AdminUsersPage() {
   }
 
   async function handleToggleActive(adminUser: AdminUser) {
+    if (adminUser.isActive) {
+      setAdminUserToDeactivate(adminUser);
+      return;
+    }
+
     setIsSubmitting(true);
 
     try {
       await updateAdminStatus(adminUser.id, adminUser.role, !adminUser.isActive);
       showToast({ type: 'success', title: !adminUser.isActive ? t('adminUsers.activated') : t('adminUsers.deactivated') });
+      await loadAdminUsers();
+    } catch (unknownError) {
+      const message = unknownError instanceof Error ? unknownError.message : t('adminUsers.updateFailed');
+      showToast({ type: 'error', title: t('adminUsers.updateFailedTitle'), description: message });
+    } finally {
+      setIsSubmitting(false);
+    }
+  }
+
+  async function handleConfirmDeactivate() {
+    if (!adminUserToDeactivate) {
+      return;
+    }
+
+    setIsSubmitting(true);
+
+    try {
+      await updateAdminStatus(adminUserToDeactivate.id, adminUserToDeactivate.role, false);
+      showToast({ type: 'success', title: t('adminUsers.deactivated') });
+      setAdminUserToDeactivate(null);
       await loadAdminUsers();
     } catch (unknownError) {
       const message = unknownError instanceof Error ? unknownError.message : t('adminUsers.updateFailed');
@@ -138,6 +165,19 @@ export function AdminUsersPage() {
           {isSubmitting && !isLoading ? <p className="mt-4 text-sm text-slate-500">{t('adminUsers.updatingStatus')}</p> : null}
         </CardContent>
       </Card>
+
+      <ConfirmDialog
+        isOpen={adminUserToDeactivate !== null}
+        title={t('adminUsers.deactivateConfirmTitle')}
+        description={t('adminUsers.deactivateConfirmDescription', {
+          name: adminUserToDeactivate?.displayName || `${adminUserToDeactivate?.firstName ?? ''} ${adminUserToDeactivate?.lastName ?? ''}`.trim(),
+        })}
+        confirmLabel={t('adminUsers.deactivateAdmin')}
+        cancelLabel={t('common.cancel')}
+        isLoading={isSubmitting}
+        onConfirm={() => void handleConfirmDeactivate()}
+        onCancel={() => setAdminUserToDeactivate(null)}
+      />
     </div>
   );
 }

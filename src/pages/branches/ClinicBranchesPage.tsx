@@ -4,6 +4,7 @@ import { Link, Navigate } from 'react-router-dom';
 
 import { Button } from '../../components/ui/Button';
 import { Card, CardContent, CardHeader } from '../../components/ui/Card';
+import { ConfirmDialog } from '../../components/ui/ConfirmDialog';
 import { ErrorState } from '../../components/ui/ErrorState';
 import { LoadingState } from '../../components/ui/LoadingState';
 import { PageHeader } from '../../components/ui/PageHeader';
@@ -35,6 +36,7 @@ export function ClinicBranchesPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [branchToDeactivate, setBranchToDeactivate] = useState<BranchListItem | null>(null);
 
   const loadBranches = useCallback(async () => {
     if (!clinicId) {
@@ -131,6 +133,11 @@ export function ClinicBranchesPage() {
       return;
     }
 
+    if (branch.isActive) {
+      setBranchToDeactivate(branch);
+      return;
+    }
+
     setIsSubmitting(true);
 
     try {
@@ -139,6 +146,29 @@ export function ClinicBranchesPage() {
         type: 'success',
         title: !branch.isActive ? t('branches.activated') : t('branches.deactivated'),
       });
+      await loadBranches();
+    } catch (toggleError) {
+      const message = toggleError instanceof Error ? toggleError.message : t('branches.updateFailed');
+      showToast({ type: 'error', title: t('branches.updateFailed'), description: message });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleConfirmDeactivate = async () => {
+    if (!branchToDeactivate) {
+      return;
+    }
+
+    setIsSubmitting(true);
+
+    try {
+      await updateBranchStatus(branchToDeactivate.id, false);
+      showToast({
+        type: 'success',
+        title: t('branches.deactivated'),
+      });
+      setBranchToDeactivate(null);
       await loadBranches();
     } catch (toggleError) {
       const message = toggleError instanceof Error ? toggleError.message : t('branches.updateFailed');
@@ -220,6 +250,17 @@ export function ClinicBranchesPage() {
           {isSubmitting && !isLoading ? <p className="mt-4 text-sm text-slate-500">{t('branches.updatingStatus')}</p> : null}
         </CardContent>
       </Card>
+
+      <ConfirmDialog
+        isOpen={branchToDeactivate !== null}
+        title={t('branches.deactivateConfirmTitle')}
+        description={t('branches.deactivateConfirmDescription', { name: branchToDeactivate?.name ?? '' })}
+        confirmLabel={t('branches.disableBranch')}
+        cancelLabel={t('common.cancel')}
+        isLoading={isSubmitting}
+        onConfirm={() => void handleConfirmDeactivate()}
+        onCancel={() => setBranchToDeactivate(null)}
+      />
     </div>
   );
 }
