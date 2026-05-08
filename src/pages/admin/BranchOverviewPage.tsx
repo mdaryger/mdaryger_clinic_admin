@@ -7,6 +7,7 @@ import { ErrorState } from '../../components/ui/ErrorState';
 import { LoadingState } from '../../components/ui/LoadingState';
 import { PageHeader } from '../../components/ui/PageHeader';
 import { StatCard } from '../../components/ui/StatCard';
+import { useI18n } from '../../i18n/useI18n';
 import { getBranchDashboardData } from '../../services/dashboardService';
 import { useAuthStore } from '../../store/authStore';
 
@@ -20,6 +21,7 @@ function DetailItem({ label, value }: { label: string; value: string }) {
 }
 
 export function BranchOverviewPage() {
+  const { t } = useI18n();
   const { clinicBranchId, clinicId } = useAuthStore();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -28,7 +30,7 @@ export function BranchOverviewPage() {
   const loadOverview = useCallback(async () => {
     if (!clinicId || !clinicBranchId) {
       setBranchData(null);
-      setError('Branch data is not available for this user.');
+      setError(t('dashboard.branchUnavailable'));
       setLoading(false);
       return;
     }
@@ -41,26 +43,26 @@ export function BranchOverviewPage() {
       setBranchData(data);
     } catch (unknownError) {
       setBranchData(null);
-      setError(unknownError instanceof Error ? unknownError.message : 'Failed to load branch overview.');
+      setError(unknownError instanceof Error ? unknownError.message : t('branches.loadFailedTitle'));
     } finally {
       setLoading(false);
     }
-  }, [clinicBranchId, clinicId]);
+  }, [clinicBranchId, clinicId, t]);
 
   useEffect(() => {
     void loadOverview();
   }, [loadOverview]);
 
   if (loading) {
-    return <LoadingState label="Loading branch overview..." />;
+    return <LoadingState label={t('branches.loadingOne')} />;
   }
 
   if (error || !branchData?.branch) {
     return (
       <ErrorState
-        title="Branch overview unavailable"
-        description={error ?? 'Branch data was not found for this account.'}
-        actionLabel="Try again"
+        title={t('branches.loadFailedTitle')}
+        description={error ?? t('branches.notFoundDescription')}
+        actionLabel={t('common.retry')}
         onAction={() => void loadOverview()}
       />
     );
@@ -73,13 +75,13 @@ export function BranchOverviewPage() {
     <div className="space-y-6">
       <PageHeader
         title={typeof branch.name === 'string' && branch.name.trim() ? branch.name : branch.id}
-        description="Branch profile and operational snapshot."
+        description={t('branches.branchProfile')}
         actions={
           <div className="flex flex-wrap gap-2">
-            <Badge tone={branch.isActive ? 'green' : 'slate'}>{branch.isActive ? 'Active' : 'Inactive'}</Badge>
+            <Badge tone={branch.isActive ? 'green' : 'slate'}>{branch.isActive ? t('branches.activeBadge') : t('branches.inactiveBadge')}</Badge>
             {typeof branch.isVerified === 'boolean' ? (
               <Badge tone={branch.isVerified ? 'primary' : 'yellow'}>
-                {branch.isVerified ? 'Verified' : 'Unverified'}
+                {branch.isVerified ? t('clinicOverview.verified') : t('clinicOverview.unverified')}
               </Badge>
             ) : null}
           </div>
@@ -87,67 +89,67 @@ export function BranchOverviewPage() {
       />
 
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        <StatCard label="Branch doctors" value={branchData.totalDoctors} icon={Stethoscope} helperText="Doctors assigned to this branch" />
-        <StatCard label="Active doctors" value={branchData.activeDoctors} icon={UserRound} helperText="Currently active doctor profiles" />
-        <StatCard label="Available doctors" value={branchData.availableDoctors} icon={Building2} helperText="Ready to take new requests" />
-        <StatCard label="Active requests" value={branchData.activeRequestsCount} icon={Activity} helperText="Visible active request load" />
+        <StatCard label={t('branches.doctors')} value={branchData.totalDoctors} icon={Stethoscope} helperText={t('branches.doctorsHelper')} />
+        <StatCard label={t('branches.activeDoctors')} value={branchData.activeDoctors} icon={UserRound} helperText={t('branches.activeDoctorsHelper')} />
+        <StatCard label={t('branches.availableDoctors')} value={branchData.availableDoctors} icon={Building2} helperText={t('branches.availableDoctorsHelper')} />
+        <StatCard label={t('branches.activeRequests')} value={branchData.activeRequestsCount} icon={Activity} helperText={t('branches.activeRequestsHelper')} />
       </div>
 
       <section className="grid gap-4 xl:grid-cols-2">
         <Card>
           <CardHeader>
-            <h2 className="text-base font-semibold text-slate-950">Branch details</h2>
+            <h2 className="text-base font-semibold text-slate-950">{t('branches.detailsFallback')}</h2>
           </CardHeader>
           <CardContent className="grid gap-5 sm:grid-cols-2">
-            <DetailItem label="Address" value={typeof branch.address === 'string' ? branch.address : 'Not specified'} />
+            <DetailItem label={t('branches.address')} value={typeof branch.address === 'string' ? branch.address : t('branches.noData')} />
             <DetailItem
-              label="City / Country"
-              value={[branch.city, branch.country].filter((value): value is string => typeof value === 'string' && value.length > 0).join(', ') || 'Not specified'}
+              label={t('branches.cityCountry')}
+              value={[branch.city, branch.country].filter((value): value is string => typeof value === 'string' && value.length > 0).join(', ') || t('branches.noData')}
             />
             <DetailItem
-              label="Working hours"
-              value={workingHours || 'Not specified'}
+              label={t('branches.workingHours')}
+              value={workingHours || t('branches.noData')}
             />
             <DetailItem
-              label="Description"
-              value={typeof branch.description === 'string' ? branch.description : 'Not specified'}
+              label={t('branches.description')}
+              value={typeof branch.description === 'string' ? branch.description : t('branches.noData')}
             />
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader>
-            <h2 className="text-base font-semibold text-slate-950">Contacts</h2>
+            <h2 className="text-base font-semibold text-slate-950">{t('branches.contacts')}</h2>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="flex items-start gap-3">
               <Phone className="mt-0.5 h-4 w-4 text-slate-400" />
               <div>
-                <p className="text-sm font-medium text-slate-950">Phone</p>
-                <p className="text-sm text-slate-600">{typeof branch.phone === 'string' ? branch.phone : 'Not specified'}</p>
+                <p className="text-sm font-medium text-slate-950">{t('branches.phone')}</p>
+                <p className="text-sm text-slate-600">{typeof branch.phone === 'string' ? branch.phone : t('branches.noData')}</p>
               </div>
             </div>
             <div className="flex items-start gap-3">
               <Mail className="mt-0.5 h-4 w-4 text-slate-400" />
               <div>
-                <p className="text-sm font-medium text-slate-950">Email</p>
-                <p className="text-sm text-slate-600">{typeof branch.email === 'string' ? branch.email : 'Not specified'}</p>
+                <p className="text-sm font-medium text-slate-950">{t('branches.email')}</p>
+                <p className="text-sm text-slate-600">{typeof branch.email === 'string' ? branch.email : t('branches.noData')}</p>
               </div>
             </div>
             <div className="flex items-start gap-3">
               <MapPin className="mt-0.5 h-4 w-4 text-slate-400" />
               <div>
-                <p className="text-sm font-medium text-slate-950">Location</p>
+                <p className="text-sm font-medium text-slate-950">{t('branches.cityCountry')}</p>
                 <p className="text-sm text-slate-600">
-                  {[branch.city, branch.country].filter((value): value is string => typeof value === 'string' && value.length > 0).join(', ') || 'Not specified'}
+                  {[branch.city, branch.country].filter((value): value is string => typeof value === 'string' && value.length > 0).join(', ') || t('branches.noData')}
                 </p>
               </div>
             </div>
             <div className="flex items-start gap-3">
               <Clock3 className="mt-0.5 h-4 w-4 text-slate-400" />
               <div>
-                <p className="text-sm font-medium text-slate-950">Working hours</p>
-                <p className="text-sm text-slate-600">{workingHours || 'Not specified'}</p>
+                <p className="text-sm font-medium text-slate-950">{t('branches.workingHours')}</p>
+                <p className="text-sm text-slate-600">{workingHours || t('branches.noData')}</p>
               </div>
             </div>
           </CardContent>

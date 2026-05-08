@@ -50,6 +50,7 @@ const branchAdminMenu: MenuItem[] = [
   { labelKey: 'nav.homeRequests', path: '/branch-home-requests', icon: ClipboardList },
   { labelKey: 'nav.clinicVisitRequests', path: '/branch-clinic-visit-requests', icon: CalendarDays },
   { labelKey: 'nav.plannedVisits', path: '/branch-home-visit-requests-plan', icon: CalendarDays },
+  { labelKey: 'nav.settings', path: '/branch-settings', icon: Settings },
 ];
 
 function formatRole(role: string | null, t: (key: string) => string) {

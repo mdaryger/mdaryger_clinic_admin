@@ -61,7 +61,13 @@ export function CreateAdminUserPage() {
           <h2 className="text-lg font-semibold text-slate-950">{t('adminUsers.profileTitle')}</h2>
         </CardHeader>
         <CardContent>
-          <AdminUserForm clinicId={clinicId} clinic={clinic} isSubmitting={isSubmitting} onSubmit={handleSubmit} onCancel={() => navigate('/admin-users')} />
+          <AdminUserForm
+            clinicId={clinicId}
+            clinic={clinic}
+            isSubmitting={isSubmitting}
+            onSubmit={(data) => handleSubmit(data as CreateAdminUserData)}
+            onCancel={() => navigate('/admin-users')}
+          />
         </CardContent>
       </Card>
     </div>

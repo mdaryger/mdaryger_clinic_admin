@@ -1,4 +1,4 @@
-import { ArrowLeft, Mail, Phone, ShieldCheck } from 'lucide-react';
+import { ArrowLeft, Mail, Pencil, Phone, ShieldCheck } from 'lucide-react';
 import { useCallback, useEffect, useState } from 'react';
 import { Link, Navigate, useParams } from 'react-router-dom';
 
@@ -127,12 +127,20 @@ export function AdminUserDetailsPage() {
         title={adminUser.displayName || `${adminUser.firstName} ${adminUser.lastName}`.trim()}
         description={adminUser.normalizedRole === 'clinic_branch_admin' ? t('adminUsers.branchAdmin') : t('adminUsers.clinicAdmin')}
         actions={
-          <Link to="/admin-users">
-            <Button type="button" variant="secondary">
-              <ArrowLeft className="h-4 w-4" aria-hidden="true" />
-              {t('adminUsers.back')}
-            </Button>
-          </Link>
+          <>
+            <Link to={`/admin-users/${adminUser.id}/edit`}>
+              <Button type="button">
+                <Pencil className="h-4 w-4" aria-hidden="true" />
+                {t('adminUsers.edit')}
+              </Button>
+            </Link>
+            <Link to="/admin-users">
+              <Button type="button" variant="secondary">
+                <ArrowLeft className="h-4 w-4" aria-hidden="true" />
+                {t('adminUsers.back')}
+              </Button>
+            </Link>
+          </>
         }
       />
 

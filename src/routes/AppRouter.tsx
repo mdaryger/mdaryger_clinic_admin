@@ -7,6 +7,7 @@ import { DashboardPage } from '../pages/admin/DashboardPage';
 import { AdminUserDetailsPage } from '../pages/admin-users/AdminUserDetailsPage';
 import { AdminUsersPage } from '../pages/admin-users/AdminUsersPage';
 import { CreateAdminUserPage } from '../pages/admin-users/CreateAdminUserPage';
+import { EditAdminUserPage } from '../pages/admin-users/EditAdminUserPage';
 import { BranchDetailsPage } from '../pages/branches/BranchDetailsPage';
 import { ClinicBranchesPage } from '../pages/branches/ClinicBranchesPage';
 import { CreateBranchPage } from '../pages/branches/CreateBranchPage';
@@ -17,6 +18,7 @@ import { DoctorsListPage } from '../pages/doctors/DoctorsListPage';
 import { EditDoctorPage } from '../pages/doctors/EditDoctorPage';
 import { RequestDetailsPage } from '../pages/requests/RequestDetailsPage';
 import { RequestsListPage } from '../pages/requests/RequestsListPage';
+import { BranchSettingsPage } from '../pages/settings/BranchSettingsPage';
 import { SettingsPage } from '../pages/settings/SettingsPage';
 import { PublicLayout } from '../layouts/PublicLayout';
 import { LandingPage } from '../pages/LandingPage';
@@ -86,6 +88,7 @@ export const router = createBrowserRouter([
               { path: '/admin-users', element: <AdminUsersPage /> },
               { path: '/admin-users/create', element: <CreateAdminUserPage /> },
               { path: '/admin-users/:userId', element: <AdminUserDetailsPage /> },
+              { path: '/admin-users/:userId/edit', element: <EditAdminUserPage /> },
               { path: '/settings', element: <SettingsPage /> },
             ],
           },
@@ -105,6 +108,7 @@ export const router = createBrowserRouter([
               { path: '/branch-clinic-visit-requests/:requestId', element: <RequestDetailsPage /> },
               { path: '/branch-home-visit-requests-plan', element: <RequestsListPage /> },
               { path: '/branch-home-visit-requests-plan/:requestId', element: <RequestDetailsPage /> },
+              { path: '/branch-settings', element: <BranchSettingsPage /> },
             ],
           },
         ],

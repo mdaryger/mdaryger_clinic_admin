@@ -6,15 +6,17 @@ import { Button } from '../../components/ui/Button';
 import { Input } from '../../components/ui/Input';
 import { Select } from '../../components/ui/Select';
 import { useI18n } from '../../i18n/useI18n';
-import { adminUserSchema, type AdminUserSchemaValues } from '../../lib/validation/adminUserSchema';
+import { createAdminUserSchema, type AdminUserSchemaValues } from '../../lib/validation/adminUserSchema';
 import { getBranchesByClinicId, type ClinicBranch } from '../../services/branchService';
-import type { AdminUserRole, CreateAdminUserData } from '../../services/adminUserService';
+import type { AdminUser, AdminUserRole, CreateAdminUserData, UpdateAdminUserData } from '../../services/adminUserService';
 
 type AdminUserFormProps = {
   clinicId: string;
   clinic?: Record<string, unknown> | null;
   isSubmitting?: boolean;
-  onSubmit: (data: CreateAdminUserData) => Promise<void> | void;
+  mode?: 'create' | 'edit';
+  adminUser?: AdminUser | null;
+  onSubmit: (data: CreateAdminUserData | UpdateAdminUserData) => Promise<void> | void;
   onCancel?: () => void;
 };
 
@@ -22,12 +24,15 @@ export function AdminUserForm({
   clinicId,
   clinic = null,
   isSubmitting = false,
+  mode = 'create',
+  adminUser = null,
   onSubmit,
   onCancel,
 }: AdminUserFormProps) {
   const { t } = useI18n();
   const [branches, setBranches] = useState<ClinicBranch[]>([]);
   const [branchesLoading, setBranchesLoading] = useState(true);
+  const isEditMode = mode === 'edit';
   const clinicName =
     clinic && typeof clinic.name === 'string' && clinic.name.trim().length > 0
       ? clinic.name.trim()
@@ -42,14 +47,14 @@ export function AdminUserForm({
     setValue,
     formState: { errors },
   } = useForm<AdminUserSchemaValues>({
-    resolver: zodResolver(adminUserSchema),
+    resolver: zodResolver(createAdminUserSchema(!isEditMode)),
     defaultValues: {
-      role: 'clinicAdmin',
-      clinicBranchId: '',
-      firstName: '',
-      lastName: '',
-      email: '',
-      phone: '',
+      role: adminUser?.normalizedRole === 'clinic_branch_admin' ? 'clinicBranchAdmin' : 'clinicAdmin',
+      clinicBranchId: adminUser?.clinicBranchId ?? '',
+      firstName: adminUser?.firstName ?? '',
+      lastName: adminUser?.lastName ?? '',
+      email: adminUser?.email ?? '',
+      phone: adminUser?.phone ?? '',
       password: '',
       confirmPassword: '',
     },
@@ -88,13 +93,26 @@ export function AdminUserForm({
   }, [selectedRole, setValue]);
 
   const submitForm = (values: AdminUserSchemaValues) => {
+    if (isEditMode) {
+      void onSubmit({
+        role: values.role as AdminUserRole,
+        firstName: values.firstName,
+        lastName: values.lastName,
+        phone: values.phone,
+        clinicId,
+        clinicBranchId: values.role === 'clinicBranchAdmin' ? values.clinicBranchId : undefined,
+        clinic,
+      });
+      return;
+    }
+
     void onSubmit({
       role: values.role as AdminUserRole,
       firstName: values.firstName,
       lastName: values.lastName,
       email: values.email,
       phone: values.phone,
-      password: values.password,
+      password: values.password ?? '',
       clinicId,
       clinicBranchId: values.role === 'clinicBranchAdmin' ? values.clinicBranchId : undefined,
       clinic,
@@ -140,10 +158,10 @@ export function AdminUserForm({
         </Select>
         <Input label={t('adminUsers.firstName')} error={errors.firstName?.message} {...register('firstName')} />
         <Input label={t('adminUsers.lastName')} error={errors.lastName?.message} {...register('lastName')} />
-        <Input label={t('adminUsers.email')} type="email" error={errors.email?.message} {...register('email')} />
+        <Input label={t('adminUsers.email')} type="email" error={errors.email?.message} disabled={isEditMode} {...register('email')} />
         <Input label={t('adminUsers.phone')} error={errors.phone?.message} {...register('phone')} />
-        <Input label={t('adminUsers.password')} type="password" error={errors.password?.message} {...register('password')} />
-        <Input label={t('adminUsers.confirmPassword')} type="password" error={errors.confirmPassword?.message} {...register('confirmPassword')} />
+        {!isEditMode ? <Input label={t('adminUsers.password')} type="password" error={errors.password?.message} {...register('password')} /> : null}
+        {!isEditMode ? <Input label={t('adminUsers.confirmPassword')} type="password" error={errors.confirmPassword?.message} {...register('confirmPassword')} /> : null}
       </div>
 
       <div className="flex justify-end gap-2">
@@ -153,7 +171,7 @@ export function AdminUserForm({
           </Button>
         ) : null}
         <Button type="submit" isLoading={isSubmitting}>
-          {t('adminUsers.createAdminUser')}
+          {isEditMode ? t('adminUsers.updateAdminUser') : t('adminUsers.createAdminUser')}
         </Button>
       </div>
     </form>

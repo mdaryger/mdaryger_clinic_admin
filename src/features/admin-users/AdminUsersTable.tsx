@@ -1,4 +1,4 @@
-import { Eye, Power } from 'lucide-react';
+import { Eye, Pencil, Power } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 import { Badge } from '../../components/ui/Badge';
@@ -90,6 +90,11 @@ export function AdminUsersTable({ adminUsers, onToggleActive }: AdminUsersTableP
           <Link to={`/admin-users/${adminUser.id}`}>
             <Button type="button" variant="secondary" size="icon" aria-label={t('adminUsers.openAdmin')}>
               <Eye className="h-4 w-4" aria-hidden="true" />
+            </Button>
+          </Link>
+          <Link to={`/admin-users/${adminUser.id}/edit`}>
+            <Button type="button" variant="secondary" size="icon" aria-label={t('adminUsers.editAdmin')}>
+              <Pencil className="h-4 w-4" aria-hidden="true" />
             </Button>
           </Link>
           <Button

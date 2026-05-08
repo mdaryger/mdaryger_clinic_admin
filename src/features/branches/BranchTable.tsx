@@ -47,7 +47,6 @@ export function BranchTable({ branches, onToggleActive }: BranchTableProps) {
       cell: (branch) => (
         <div>
           <p className="font-semibold text-slate-950">{branch.name}</p>
-          {branch.isPrimaryClinic ? <p className="text-xs text-slate-500">{t('branches.mainClinic')}</p> : <p className="text-xs text-slate-500">{branch.id}</p>}
         </div>
       ),
     },

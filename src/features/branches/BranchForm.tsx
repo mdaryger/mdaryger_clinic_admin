@@ -19,6 +19,7 @@ type BranchFormProps = {
   isSubmitting?: boolean;
   onSubmit: (data: BranchFormData) => Promise<void> | void;
   onCancel?: () => void;
+  showMainBranchOption?: boolean;
 };
 
 const defaultWorkingDays: WorkingDay[] = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
@@ -45,7 +46,14 @@ function getDefaultValues(branch?: ClinicBranch | null): BranchSchemaValues {
   };
 }
 
-export function BranchForm({ branch, clinicId, isSubmitting = false, onSubmit, onCancel }: BranchFormProps) {
+export function BranchForm({
+  branch,
+  clinicId,
+  isSubmitting = false,
+  onSubmit,
+  onCancel,
+  showMainBranchOption = true,
+}: BranchFormProps) {
   const { t } = useI18n();
   const {
     register,
@@ -181,7 +189,9 @@ export function BranchForm({ branch, clinicId, isSubmitting = false, onSubmit, o
         <Input label={t('branches.branchManagerEmail')} type="email" error={errors.branchManagerEmail?.message} {...register('branchManagerEmail')} />
       </div>
 
-      <Checkbox label={t('branches.mainBranch')} description={t('branches.mainBranchDescription')} {...register('isMainBranch')} />
+      {showMainBranchOption ? (
+        <Checkbox label={t('branches.mainBranch')} description={t('branches.mainBranchDescription')} {...register('isMainBranch')} />
+      ) : null}
 
       <div className="flex justify-end gap-2">
         {onCancel ? (

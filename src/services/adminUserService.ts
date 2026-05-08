@@ -2,6 +2,7 @@ import { createUserWithEmailAndPassword, deleteUser, getAuth, signOut } from 'fi
 import { deleteApp, initializeApp } from 'firebase/app';
 import {
   collection,
+  deleteDoc,
   doc,
   getDoc,
   getDocs,
@@ -50,6 +51,16 @@ export type CreateAdminUserData = {
   email: string;
   phone: string;
   password: string;
+  clinicId: string;
+  clinicBranchId?: string;
+  clinic?: Record<string, unknown> | null;
+};
+
+export type UpdateAdminUserData = {
+  role: AdminUserRole;
+  firstName: string;
+  lastName: string;
+  phone: string;
   clinicId: string;
   clinicBranchId?: string;
   clinic?: Record<string, unknown> | null;
@@ -187,6 +198,55 @@ export async function updateAdminStatus(
     isActive,
     updatedAt: serverTimestamp(),
   });
+}
+
+export async function updateAdminUser(
+  userId: string,
+  data: UpdateAdminUserData,
+): Promise<AdminUser> {
+  const existingUser = await getAdminUserById(userId);
+
+  if (!existingUser) {
+    throw new Error(`Admin user ${userId} not found.`);
+  }
+
+  const currentCollectionName = getCollectionNameByRole(existingUser.role);
+  const targetRole = data.role === 'clinicBranchAdmin' ? 'clinicBranchAdmin' : 'clinicAdmin';
+  const targetCollectionName = getCollectionNameByRole(targetRole);
+  const payload = {
+    uid: existingUser.uid,
+    firstName: data.firstName,
+    lastName: data.lastName,
+    displayName: `${data.firstName} ${data.lastName}`.trim(),
+    email: existingUser.email,
+    phone: data.phone,
+    role: targetRole,
+    clinicId: data.clinicId,
+    clinicBranchId: data.role === 'clinicBranchAdmin' ? data.clinicBranchId ?? '' : null,
+    clinic: data.clinic ?? existingUser.clinic ?? null,
+    isActive: existingUser.isActive,
+    isEmailVerified: existingUser.isEmailVerified,
+    createdAt: existingUser.createdAt,
+    updatedAt: serverTimestamp(),
+    lastLoginAt: existingUser.lastLoginAt ?? null,
+  };
+
+  if (currentCollectionName === targetCollectionName) {
+    await updateDoc(doc(db, currentCollectionName, userId), {
+      ...payload,
+    });
+  } else {
+    await setDoc(doc(db, targetCollectionName, userId), payload);
+    await deleteDoc(doc(db, currentCollectionName, userId));
+  }
+
+  const updatedUser = await getAdminUserById(userId);
+
+  if (!updatedUser) {
+    throw new Error(`Admin user ${userId} was updated but could not be loaded.`);
+  }
+
+  return updatedUser;
 }
 
 // TODO: In production, replace createAdminUser with a secure Cloud Function.

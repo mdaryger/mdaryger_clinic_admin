@@ -12,7 +12,7 @@ import { PageHeader } from '../../components/ui/PageHeader';
 import { SearchInput } from '../../components/ui/SearchInput';
 import { Select } from '../../components/ui/Select';
 import { useI18n } from '../../i18n/useI18n';
-import { getBranchesByClinicId, type ClinicBranch } from '../../services/branchService';
+import { getBranchById, getBranchesByClinicId, type ClinicBranch } from '../../services/branchService';
 import {
   getDoctorsByBranchId,
   getDoctorsByClinicId,
@@ -46,7 +46,6 @@ export function DoctorsListPage() {
   const [branches, setBranches] = useState<ClinicBranch[]>([]);
   const [search, setSearch] = useState('');
   const [activeFilter, setActiveFilter] = useState('all');
-  const [onlineFilter, setOnlineFilter] = useState('all');
   const [busyFilter, setBusyFilter] = useState('all');
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -74,8 +73,13 @@ export function DoctorsListPage() {
           throw new Error(t('dashboard.branchUnavailable'));
         }
 
-        setDoctors(await getDoctorsByBranchId(clinicBranchId));
-        setBranches([]);
+        const [doctorsData, branchData] = await Promise.all([
+          getDoctorsByBranchId(clinicBranchId),
+          getBranchById(clinicBranchId),
+        ]);
+
+        setDoctors(doctorsData);
+        setBranches(branchData ? [branchData] : []);
       }
     } catch (unknownError) {
       setError(unknownError instanceof Error ? unknownError.message : t('doctors.loadListFailed'));
@@ -110,12 +114,11 @@ export function DoctorsListPage() {
         search,
       );
       const matchesActive = activeFilter === 'all' || (activeFilter === 'yes' ? doctor.isActive : !doctor.isActive);
-      const matchesOnline = onlineFilter === 'all' || (onlineFilter === 'yes' ? doctor.isOnline : !doctor.isOnline);
       const matchesBusy = busyFilter === 'all' || (busyFilter === 'yes' ? doctor.busy : !doctor.busy);
 
-      return matchesSearch && matchesActive && matchesOnline && matchesBusy;
+      return matchesSearch && matchesActive && matchesBusy;
     });
-  }, [activeFilter, busyFilter, doctors, onlineFilter, search]);
+  }, [activeFilter, busyFilter, doctors, search]);
 
   const branchMap = useMemo(
     () => new Map(branches.map((branch) => [branch.id, branch.name])),
@@ -180,7 +183,6 @@ export function DoctorsListPage() {
       cell: (doctor) => (
         <div className="grid gap-2 sm:grid-cols-2">
           <Badge tone={doctor.isActive ? 'green' : 'slate'}>{doctor.isActive ? t('doctors.active') : t('doctors.inactive')}</Badge>
-          <Badge tone={doctor.isOnline ? 'green' : 'slate'}>{doctor.isOnline ? t('doctors.online') : t('doctors.offline')}</Badge>
           <Badge tone={doctor.busy ? 'yellow' : 'green'}>{doctor.busy ? t('doctors.busy') : t('doctors.free')}</Badge>
         </div>
       ),
@@ -275,12 +277,6 @@ export function DoctorsListPage() {
               <option value="all">{t('doctors.activeFilter')}</option>
               <option value="yes">{t('doctors.activeYes')}</option>
               <option value="no">{t('doctors.activeNo')}</option>
-            </Select>
-
-            <Select value={onlineFilter} onChange={(event) => setOnlineFilter(event.target.value)}>
-              <option value="all">{t('doctors.onlineFilter')}</option>
-              <option value="yes">{t('doctors.onlineYes')}</option>
-              <option value="no">{t('doctors.onlineNo')}</option>
             </Select>
             <Select value={busyFilter} onChange={(event) => setBusyFilter(event.target.value)}>
               <option value="all">{t('doctors.busyFilter')}</option>

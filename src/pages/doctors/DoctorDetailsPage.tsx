@@ -18,6 +18,7 @@ import { deleteDoctor, getDoctorById, type Doctor } from '../../services/doctorS
 import { getDepartmentsByDoctorType, getDepartmentDisplayName, type Department } from '../../services/departmentService';
 import { useAuthStore } from '../../store/authStore';
 import { useToastStore } from '../../store/toastStore';
+import { formatPhone } from '../../utils/formatters';
 
 type DoctorMode = 'clinic' | 'branch';
 
@@ -253,7 +254,7 @@ export function DoctorDetailsPage() {
                   <Phone className="mt-0.5 h-4 w-4 text-slate-400" />
                   <div>
                     <p className="text-sm font-medium text-slate-950">{t('doctors.phone')}</p>
-                    <p className="text-sm text-slate-600">{doctor.phone || t('doctors.notSpecified')}</p>
+                    <p className="text-sm text-slate-600">{doctor.phone ? formatPhone(doctor.phone) : t('doctors.notSpecified')}</p>
                   </div>
                 </div>
                 <div className="flex items-start gap-3">

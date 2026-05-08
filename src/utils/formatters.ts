@@ -27,7 +27,32 @@ export function formatCurrency(value: unknown): string {
 export function formatPhone(value: unknown): string {
   const phone = String(value ?? '').trim();
 
-  return phone || '-';
+  if (!phone) {
+    return '-';
+  }
+
+  const hasPlus = phone.startsWith('+');
+  const digits = phone.replace(/\D/g, '');
+
+  if (!digits) {
+    return phone;
+  }
+
+  if (digits.length === 12 && digits.startsWith('996')) {
+    return `+996 ${digits.slice(3, 6)} ${digits.slice(6, 9)} ${digits.slice(9, 12)}`;
+  }
+
+  if (digits.length === 9) {
+    return `${digits.slice(0, 3)} ${digits.slice(3, 6)} ${digits.slice(6, 9)}`;
+  }
+
+  if (digits.length === 10 && digits.startsWith('0')) {
+    return `${digits.slice(0, 4)} ${digits.slice(4, 7)} ${digits.slice(7, 10)}`;
+  }
+
+  const chunks = digits.match(/.{1,3}/g) ?? [digits];
+
+  return `${hasPlus ? '+' : ''}${chunks.join(' ')}`.trim();
 }
 
 export function formatFullName(user: NameLike): string {
