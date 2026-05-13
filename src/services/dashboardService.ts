@@ -44,8 +44,12 @@ export type DashboardDoctor = {
   lastName?: string;
   displayName?: string;
   specialty?: string;
+  specialist?: string;
+  experience?: number;
+  price?: number;
   isActive?: boolean;
   isAvailable?: boolean;
+  isVerified?: boolean;
   status?: string;
   createdAt?: unknown;
   updatedAt?: unknown;

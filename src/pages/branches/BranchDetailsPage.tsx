@@ -34,7 +34,7 @@ function getDoctorName(doctor: Record<string, unknown>, t: (key: string) => stri
     return fullName;
   }
 
-  return typeof doctor.displayName === 'string' && doctor.displayName.trim() ? doctor.displayName : String(doctor.id ?? t('doctors.doctor'));
+  return typeof doctor.displayName === 'string' && doctor.displayName.trim() ? doctor.displayName : t('doctors.doctor');
 }
 
 function formatWorkingDays(days: string[], t: (key: string) => string): string {
@@ -208,17 +208,32 @@ export function BranchDetailsPage() {
             <CardContent>
               {dashboard?.doctors.length ? (
                 <div className="space-y-3">
-                  {dashboard.doctors.slice(0, 6).map((doctor) => (
-                    <div key={doctor.id} className="flex items-start justify-between gap-4 border-b border-slate-100 pb-3 last:border-b-0 last:pb-0">
-                      <div>
-                        <p className="text-sm font-semibold text-slate-950">{getDoctorName(doctor, t)}</p>
-                        <p className="text-sm text-slate-600">
-                          {typeof doctor.specialty === 'string' && doctor.specialty.trim() ? doctor.specialty : doctor.id}
-                        </p>
+                  {dashboard.doctors.slice(0, 6).map((doctor) => {
+                    const specialist =
+                      (typeof doctor.specialist === 'string' && doctor.specialist.trim()) ||
+                      (typeof doctor.specialty === 'string' && doctor.specialty.trim()) ||
+                      null;
+                    const metaParts: string[] = [];
+                    if (specialist) metaParts.push(specialist);
+                    if (typeof doctor.experience === 'number' && doctor.experience > 0)
+                      metaParts.push(`${doctor.experience} ${t('doctors.experienceYears')}`);
+                    if (typeof doctor.price === 'number' && doctor.price > 0)
+                      metaParts.push(`${doctor.price} ${t('doctors.currency')}`);
+
+                    return (
+                      <div key={doctor.id} className="flex items-start justify-between gap-4 border-b border-slate-100 pb-3 last:border-b-0 last:pb-0">
+                        <div>
+                          <p className="text-sm font-semibold text-slate-950">{getDoctorName(doctor, t)}</p>
+                          <p className="mt-0.5 text-sm text-slate-500">
+                            {metaParts.length ? metaParts.join(' · ') : t('branches.noData')}
+                          </p>
+                        </div>
+                        <Badge tone={doctor.isActive ? 'green' : 'slate'}>
+                          {doctor.isActive ? t('doctors.active') : t('doctors.inactive')}
+                        </Badge>
                       </div>
-                      <Badge tone={doctor.isActive ? 'green' : 'slate'}>{doctor.isActive ? t('doctors.active') : t('doctors.inactive')}</Badge>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               ) : (
                 <p className="text-sm text-slate-500">{t('branches.noDoctorsYet')}</p>
