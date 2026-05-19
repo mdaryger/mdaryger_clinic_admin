@@ -15,6 +15,7 @@ import {
 
 import { db } from '../firebase/firebase';
 import type { Clinic, CreateClinicData, UpdateClinicData } from '../types/clinic';
+import { deleteClinicCascade } from './functionsService';
 import { uploadFile } from './storageService';
 
 const CLINICS_COLLECTION = 'clinics';
@@ -144,5 +145,5 @@ export async function updateClinic(
 }
 
 export async function deleteClinic(id: string): Promise<void> {
-  await deleteDoc(doc(db, CLINICS_COLLECTION, id));
+  await deleteClinicCascade(id);
 }
