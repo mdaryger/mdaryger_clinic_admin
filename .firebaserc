@@ -1,5 +1,7 @@
 {
   "projects": {
-    "default": "medicall-prod-35394"
+    "default": "medicall-prod-35394",
+    "prod": "medicall-prod-35394",
+    "dev": "medicall-dev-f7395"
   }
 }

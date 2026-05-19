@@ -17,6 +17,7 @@ import {
 
 import { selectedFirebaseConfig } from '../firebase/config';
 import { db } from '../firebase/firebase';
+import { deleteAuthUser } from './functionsService';
 import { uploadFile } from './storageService';
 
 const DOCTORS_COLLECTION = 'doctors';
@@ -291,7 +292,7 @@ export async function deleteDoctor(doctorId: string): Promise<void> {
     ...appointmentsSnapshot.docs.map((documentSnapshot) => deleteDoc(doc(db, documentSnapshot.ref.path))),
   ]);
 
-  await deleteDoc(doc(db, DOCTORS_COLLECTION, doctorId));
+  await deleteAuthUser(doctorId);
 
-  // TODO: Delete the related Firebase Auth user through a secure Cloud Function.
+  await deleteDoc(doc(db, DOCTORS_COLLECTION, doctorId));
 }
